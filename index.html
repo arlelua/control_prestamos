@@ -383,14 +383,16 @@
       alert(`Préstamo ${nuevoPrestamo.id} registrado con éxito.`);
     }
 
-    // Actualizar campos de abono al seleccionar cliente
+    // ACTUALIZAR INFORMACIÓN DE ABONO SEGÚN PRÉSTAMO SELECCIONADO
     function actualizarInfoAbono() {
       const select = document.getElementById("selectPrestamo");
       const id = select.value;
       const infoDiv = document.getElementById("infoAbono");
+      const inputAbono = document.getElementById("montoAbono");
 
       if (!id) {
         infoDiv.classList.add("hidden");
+        inputAbono.removeAttribute("max"); // Se elimina la restricción si no hay selección
         return;
       }
 
@@ -398,8 +400,9 @@
       if (p) {
         document.getElementById("abonoSugerido").textContent = `$${p.montoSemanal.toFixed(2)} MXN`;
         document.getElementById("saldoActual").textContent = `$${p.saldoPendiente.toFixed(2)} MXN`;
-        document.getElementById("montoAbono").value = p.montoSemanal;
-        document.getElementById("montoAbono").max = p.saldoPendiente;
+
+        inputAbono.value = p.montoSemanal;
+        inputAbono.max = p.saldoPendiente; // Asigna el límite exacto del saldo del cliente
         infoDiv.classList.remove("hidden");
       }
     }
@@ -670,3 +673,4 @@ _¡Gracias por su pago puntual!_`;
   </script>
 </body>
 </html>
+
