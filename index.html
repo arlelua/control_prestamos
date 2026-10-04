@@ -20,63 +20,63 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col">
 
-  <!-- Header Global -->
-  <header class="bg-indigo-900 text-white shadow-xl sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4 border-b border-indigo-800/60">
+  <!-- Header Global con Banner Rosa (Pink/Rose Palette) -->
+  <header class="bg-rose-600 text-white shadow-xl sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4 border-b border-rose-500/60">
       <div class="flex items-center space-x-3">
-        <div class="p-2 bg-amber-400 text-indigo-950 rounded-xl shadow-inner">
+        <div class="p-2 bg-amber-300 text-rose-950 rounded-xl shadow-inner">
           <i class="fa-solid fa-vault text-xl"></i>
         </div>
         <div>
           <h1 class="text-lg font-bold leading-tight tracking-wide">CrediSimple - Control Flexible</h1>
-          <p class="text-xs text-indigo-300">Préstamos Abiertos • Sin Plazo Fijo • Registro de Incrementos</p>
+          <p class="text-xs text-rose-100">Préstamos Abiertos • Sin Plazo Fijo • Registro de Incrementos</p>
         </div>
       </div>
 
       <!-- Selector de Usuario Activo -->
-      <div class="flex items-center gap-2 bg-indigo-950/80 px-3 py-1.5 rounded-xl border border-indigo-700/50">
+      <div class="flex items-center gap-2 bg-rose-800/80 px-3 py-1.5 rounded-xl border border-rose-400/40">
         <i class="fa-solid fa-user-gear text-amber-300 text-sm"></i>
-        <span class="text-xs text-indigo-200">Usuario:</span>
-        <select id="selectUsuarioActivo" onchange="cambiarUsuarioActivo()" class="bg-indigo-900 text-white text-xs font-semibold py-1 px-2 rounded border border-indigo-700 focus:outline-none cursor-pointer">
+        <span class="text-xs text-rose-100">Usuario:</span>
+        <select id="selectUsuarioActivo" onchange="cambiarUsuarioActivo()" class="bg-rose-900 text-white text-xs font-semibold py-1 px-2 rounded border border-rose-500 focus:outline-none cursor-pointer">
         </select>
-        <button onclick="nuevoUsuarioModal()" title="Agregar nuevo cobrador/usuario" class="text-xs bg-indigo-700 hover:bg-indigo-600 text-white px-2 py-1 rounded transition">
+        <button onclick="nuevoUsuarioModal()" title="Agregar nuevo cobrador/usuario" class="text-xs bg-rose-700 hover:bg-rose-500 text-white px-2 py-1 rounded transition">
           <i class="fa-solid fa-user-plus"></i>
         </button>
       </div>
 
       <!-- Acciones de Backup -->
       <div class="flex items-center gap-2">
-        <button onclick="exportDataJSON()" class="bg-indigo-800 hover:bg-indigo-700 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+        <button onclick="exportDataJSON()" class="bg-rose-700 hover:bg-rose-500 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition shadow-sm">
           <i class="fa-solid fa-download"></i> Respaldar
         </button>
-        <label class="bg-indigo-800 hover:bg-indigo-700 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer transition shadow-sm">
+        <label class="bg-rose-700 hover:bg-rose-500 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer transition shadow-sm">
           <i class="fa-solid fa-upload"></i> Cargar
           <input type="file" id="importJsonInput" accept=".json" class="hidden" onchange="importDataJSON(event)">
         </label>
-        <button onclick="clearData()" class="bg-rose-700 hover:bg-rose-600 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+        <button onclick="clearData()" class="bg-slate-800 hover:bg-slate-700 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition shadow-sm">
           <i class="fa-solid fa-rotate-left"></i> Reiniciar
         </button>
       </div>
     </div>
 
-    <!-- Panel de Métricas Globales en Encabezado -->
-    <div class="bg-indigo-800/90 py-3 border-t border-indigo-700/40">
+    <!-- Panel de Métricas Globales en Encabezado (Rosa) -->
+    <div class="bg-rose-700/90 py-3 border-t border-rose-500/40">
       <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-        <div class="bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-700/30">
-          <span class="text-[11px] font-medium text-indigo-200 uppercase tracking-wider block">Clientes Registrados</span>
+        <div class="bg-rose-950/40 p-2.5 rounded-xl border border-rose-400/30">
+          <span class="text-[11px] font-medium text-rose-100 uppercase tracking-wider block">Clientes Registrados</span>
           <span id="hdrTotalClientes" class="text-lg font-bold text-white">0</span>
         </div>
-        <div class="bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-700/30">
-          <span class="text-[11px] font-medium text-indigo-200 uppercase tracking-wider block">Total Prestado Global</span>
+        <div class="bg-rose-950/40 p-2.5 rounded-xl border border-rose-400/30">
+          <span class="text-[11px] font-medium text-rose-100 uppercase tracking-wider block">Total Prestado Global</span>
           <span id="hdrTotalPrestado" class="text-lg font-bold text-amber-300">$0.00</span>
         </div>
-        <div class="bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-700/30">
-          <span class="text-[11px] font-medium text-indigo-200 uppercase tracking-wider block">Total Pagado / Cobrado</span>
+        <div class="bg-rose-950/40 p-2.5 rounded-xl border border-rose-400/30">
+          <span class="text-[11px] font-medium text-rose-100 uppercase tracking-wider block">Total Pagado / Cobrado</span>
           <span id="hdrTotalPagado" class="text-lg font-bold text-emerald-300">$0.00</span>
         </div>
-        <div class="bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-700/30">
-          <span class="text-[11px] font-medium text-indigo-200 uppercase tracking-wider block">Saldo Pendiente Activo</span>
-          <span id="hdrSaldoPendiente" class="text-lg font-bold text-amber-400">$0.00</span>
+        <div class="bg-rose-950/40 p-2.5 rounded-xl border border-rose-400/30">
+          <span class="text-[11px] font-medium text-rose-100 uppercase tracking-wider block">Saldo Pendiente Activo</span>
+          <span id="hdrSaldoPendiente" class="text-lg font-bold text-amber-200">$0.00</span>
         </div>
       </div>
     </div>
@@ -85,11 +85,32 @@
   <!-- Container Principal -->
   <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
 
+    <!-- Leyenda de Semáforo de Morosidad -->
+    <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <span class="font-bold text-slate-700 flex items-center gap-1.5">
+        <i class="fa-solid fa-traffic-light text-rose-600"></i> Estado de Pago (Semáforo de Morosidad):
+      </span>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-semibold rounded-full border border-emerald-300 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Verde: Al día / 0 a 2 Semanas de Retraso
+        </span>
+        <span class="px-2.5 py-1 bg-amber-100 text-amber-800 font-semibold rounded-full border border-amber-300 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span> Amarillo: 3 Semanas sin pagar
+        </span>
+        <span class="px-2.5 py-1 bg-rose-100 text-rose-800 font-semibold rounded-full border border-rose-300 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-rose-500"></span> Rojo: 4+ Semanas sin pagar
+        </span>
+        <span class="px-2.5 py-1 bg-slate-100 text-slate-600 font-semibold rounded-full border border-slate-300">
+          Gris: Liquidado
+        </span>
+      </div>
+    </div>
+
     <!-- SECCIÓN DE SELECCIÓN Y GESTIÓN RÁPIDA DE CLIENTE -->
     <section class="bg-white p-5 rounded-2xl shadow-md border border-slate-200 space-y-4">
       <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-          <i class="fa-solid fa-address-book text-indigo-600"></i> Selector de Cliente y Estado de Cuenta
+          <i class="fa-solid fa-address-book text-rose-600"></i> Selector de Cliente y Estado de Cuenta
         </h2>
         <div class="flex items-center gap-2">
           <button onclick="exportarExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-3 rounded-xl flex items-center gap-1.5 transition shadow-sm">
@@ -102,27 +123,31 @@
         <div class="md:col-span-8">
           <label class="block text-xs font-semibold text-slate-600 mb-1">Seleccionar Cliente para ver Estado de Cuenta o Realizar Operación:</label>
           <div class="flex gap-2">
-            <select id="selectClienteGlobal" onchange="cargarEstadoClienteSeleccionado()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
+            <select id="selectClienteGlobal" onchange="cargarEstadoClienteSeleccionado()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-rose-500 outline-none">
               <option value="">-- Selecciona un cliente registrado --</option>
             </select>
           </div>
         </div>
         <div class="md:col-span-4 flex justify-end">
-          <button onclick="abrirModalNuevoCliente()" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
+          <button onclick="abrirModalNuevoCliente()" class="w-full md:w-auto bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
             <i class="fa-solid fa-user-plus"></i> Registrar Nuevo Cliente
           </button>
         </div>
       </div>
 
       <!-- Tarjeta de Ficha de Cliente Seleccionado -->
-      <div id="fichaCliente" class="hidden bg-slate-50 p-4 rounded-xl border border-indigo-100 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+      <div id="fichaCliente" class="hidden bg-slate-50 p-4 rounded-xl border border-rose-100 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
         <div>
           <span class="text-[11px] text-slate-400 uppercase font-bold block">Cliente</span>
-          <span id="fcNombre" class="text-base font-bold text-indigo-900 block"></span>
+          <span id="fcNombre" class="text-base font-bold text-rose-950 block"></span>
           <span id="fcTel" class="text-xs text-slate-500"></span>
         </div>
         <div>
-          <span class="text-[11px] text-slate-400 uppercase font-bold block">Total Prestado Acumulado</span>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Estatus de Pago</span>
+          <div id="fcBadgeEstatus"></div>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Total Prestado</span>
           <span id="fcPrestado" class="text-base font-bold text-slate-800"></span>
         </div>
         <div>
@@ -130,7 +155,7 @@
           <span id="fcAbonado" class="text-base font-bold text-emerald-600"></span>
         </div>
         <div>
-          <span class="text-[11px] text-slate-400 uppercase font-bold block">Saldo Pendiente Actual</span>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Saldo Pendiente</span>
           <span id="fcSaldo" class="text-lg font-black text-amber-600"></span>
         </div>
       </div>
@@ -153,6 +178,10 @@
             <div>
               <label class="block text-xs font-medium text-slate-600 mb-1">Monto Abonado ($ MXN) *</label>
               <input type="number" id="montoAbono" step="any" min="0.01" required placeholder="Ej. 500" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Fecha del Pago *</label>
+              <input type="date" id="fechaAbono" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-600 mb-1">Notas / Observación (Opcional)</label>
@@ -182,7 +211,7 @@
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-600 mb-1">Motivo / Concepto del Aumento (Opcional)</label>
-              <input type="text" id="motivoAumento" placeholder="Ej. Ampliación de préstamo comercial" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+              <input type="text" id="motivoAumento" placeholder="Ej. Ampliación comercial" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none">
             </div>
             <button type="submit" id="btnAumento" disabled class="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-slate-300 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
               <i class="fa-solid fa-plus-circle"></i> Aumentar Saldo del Cliente
@@ -193,11 +222,11 @@
 
     </div>
 
-    <!-- HISTORIAL Y CARTERA GLOBAL DE CLIENTES -->
+    <!-- HISTORIAL Y CARTERA GLOBAL DE CLIENTES CON INDICADOR DE MOROSIDAD -->
     <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
       <div class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-          <i class="fa-solid fa-users text-indigo-600"></i> Resumen de Cartera y Movimientos
+          <i class="fa-solid fa-users text-rose-600"></i> Resumen de Cartera e Indicadores de Pago
         </h2>
       </div>
 
@@ -207,11 +236,11 @@
             <tr>
               <th class="p-3">ID Cliente</th>
               <th class="p-3">Cliente</th>
-              <th class="p-3">Teléfono</th>
+              <th class="p-3">Estatus de Pago</th>
               <th class="p-3">Total Prestado</th>
               <th class="p-3">Total Abonado</th>
               <th class="p-3">Saldo Actual</th>
-              <th class="p-3">Último Movimiento</th>
+              <th class="p-3">Último Pago</th>
               <th class="p-3 text-center">Acciones</th>
             </tr>
           </thead>
@@ -225,7 +254,7 @@
     <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
       <div class="p-4 bg-slate-100 border-b border-slate-200">
         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-          <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Historial Global de Movimientos (Abonos y Aumentos)
+          <i class="fa-solid fa-clock-rotate-left text-rose-600"></i> Historial Global de Movimientos (Abonos y Aumentos)
         </h2>
       </div>
 
@@ -233,7 +262,7 @@
         <table class="w-full text-left text-xs text-slate-600">
           <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-200">
             <tr>
-              <th class="p-3">Fecha y Hora</th>
+              <th class="p-3">Fecha</th>
               <th class="p-3">Cliente</th>
               <th class="p-3">Tipo de Operación</th>
               <th class="p-3">Monto</th>
@@ -255,7 +284,7 @@
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
         <h3 class="font-bold text-slate-800 flex items-center gap-2">
-          <i class="fa-solid fa-user-plus text-indigo-600"></i> Registrar Nuevo Cliente
+          <i class="fa-solid fa-user-plus text-rose-600"></i> Registrar Nuevo Cliente
         </h3>
         <button onclick="cerrarModalNuevoCliente()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
@@ -263,20 +292,20 @@
       <form onsubmit="guardarNuevoCliente(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Nombre Completo del Cliente *</label>
-          <input type="text" id="modalNombreCliente" required placeholder="Ej. Maria Rodríguez" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input type="text" id="modalNombreCliente" required placeholder="Ej. Maria Rodríguez" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 outline-none">
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Teléfono / WhatsApp *</label>
-          <input type="tel" id="modalTelefonoCliente" required placeholder="Ej. 5512345678" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input type="tel" id="modalTelefonoCliente" required placeholder="Ej. 5512345678" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 outline-none">
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">Monto del Préstamo Inicial ($ MXN) *</label>
-          <input type="number" id="modalMontoInicial" min="1" step="any" required placeholder="Ej. 5000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input type="number" id="modalMontoInicial" min="1" step="any" required placeholder="Ej. 5000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 outline-none">
         </div>
 
         <div class="pt-2 flex justify-end gap-2">
           <button type="button" onclick="cerrarModalNuevoCliente()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg">Guardar y Abrir Préstamo</button>
+          <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg">Guardar y Abrir Préstamo</button>
         </div>
       </form>
     </div>
@@ -287,7 +316,7 @@
     <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
         <h3 class="font-bold text-slate-800 flex items-center gap-2">
-          <i class="fa-solid fa-receipt text-indigo-600"></i> Comprobante de Operación
+          <i class="fa-solid fa-receipt text-rose-600"></i> Comprobante de Operación
         </h3>
         <button onclick="cerrarModalComprobante()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
@@ -322,18 +351,21 @@
         <button onclick="enviarWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition">
           <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
         </button>
-        <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition">
+        <button onclick="window.print()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition">
           <i class="fa-solid fa-print"></i> Imprimir
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Lógica JavaScript Pure Vanilla + LocalStorage & Modelo Flexible -->
+  <!-- Lógica JavaScript Pure Vanilla + Semáforo de Morosidad por Semanas -->
   <script>
-    // Estado inicial de la base de datos local (Modelo Abierto sin plazo)
+    // Fecha actual para inicialización de formularios
+    const hoyStr = new Date().toISOString().split('T')[0];
+
+    // Estado inicial de la base de datos local
     let appState = {
-      meta: { version: "2.0.0", fechaActualizacion: new Date().toISOString() },
+      meta: { version: "3.0.0", fechaActualizacion: new Date().toISOString() },
       usuarioActivo: "Administrador",
       usuarios: ["Administrador", "Luis López", "Cobrador 1"],
       clientes: [
@@ -347,11 +379,11 @@
           fechaRegistro: "2026-09-01",
           creadoPor: "Administrador",
           movimientos: [
-            { id: "MOV-001", fecha: "2026-09-01 10:00", tipo: "PRÉSTAMO INICIAL", monto: 12000, notas: "Apertura de crédito", registradoPor: "Administrador" },
-            { id: "MOV-002", fecha: "2026-09-08 10:00", tipo: "ABONO", monto: 1000, notas: "Abono 1", registradoPor: "Luis López" },
-            { id: "MOV-003", fecha: "2026-09-15 11:30", tipo: "ABONO", monto: 1000, notas: "Abono 2", registradoPor: "Luis López" },
-            { id: "MOV-004", fecha: "2026-09-22 09:15", tipo: "ABONO", monto: 1000, notas: "Abono 3", registradoPor: "Cobrador 1" },
-            { id: "MOV-005", fecha: "2026-09-29 16:45", tipo: "ABONO", monto: 1101, notas: "Abono 4", registradoPor: "Administrador" }
+            { id: "MOV-001", fecha: "2026-09-01", tipo: "PRÉSTAMO INICIAL", monto: 12000, notas: "Apertura de crédito", registradoPor: "Administrador" },
+            { id: "MOV-002", fecha: "2026-09-08", tipo: "ABONO", monto: 1000, notas: "Abono 1", registradoPor: "Luis López" },
+            { id: "MOV-003", fecha: "2026-09-15", tipo: "ABONO", monto: 1000, notas: "Abono 2", registradoPor: "Luis López" },
+            { id: "MOV-004", fecha: "2026-09-22", tipo: "ABONO", monto: 1000, notas: "Abono 3", registradoPor: "Cobrador 1" },
+            { id: "MOV-005", fecha: "2026-09-29", tipo: "ABONO", monto: 1101, notas: "Abono 4", registradoPor: "Administrador" }
           ]
         }
       ]
@@ -361,6 +393,7 @@
     let comprobanteActual = null;
 
     document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("fechaAbono").value = hoyStr;
       cargarDatos();
       renderizarUsuarios();
       renderizarTodo();
@@ -368,12 +401,12 @@
 
     function guardarDatos() {
       appState.meta.fechaActualizacion = new Date().toISOString();
-      localStorage.setItem("sistema_prestamos_flexible_db", JSON.stringify(appState));
+      localStorage.setItem("sistema_prestamos_rosa_db", JSON.stringify(appState));
       renderizarTodo();
     }
 
     function cargarDatos() {
-      const data = localStorage.getItem("sistema_prestamos_flexible_db");
+      const data = localStorage.getItem("sistema_prestamos_rosa_db");
       if (data) {
         try {
           const parsed = JSON.parse(data);
@@ -386,7 +419,7 @@
 
     function clearData() {
       if (confirm("¿Estás seguro de reiniciar todos los datos al estado inicial?")) {
-        localStorage.removeItem("sistema_prestamos_flexible_db");
+        localStorage.removeItem("sistema_prestamos_rosa_db");
         location.reload();
       }
     }
@@ -418,6 +451,59 @@
       }
     }
 
+    // LÓGICA DEL SEMÁFORO DE MOROSIDAD
+    function obtenerEstatusMorosidad(cliente) {
+      if (cliente.saldoPendiente <= 0) {
+        return {
+          clase: "bg-slate-100 text-slate-600 border-slate-300",
+          dot: "bg-slate-400",
+          texto: "Liquidado",
+          semanas: 0
+        };
+      }
+
+      // Obtener el último abono realizado
+      const abonos = cliente.movimientos.filter(m => m.tipo === "ABONO");
+      let fechaReferencia = cliente.fechaRegistro;
+
+      if (abonos.length > 0) {
+        // Ordenar abonos por fecha descendente
+        const abonosOrdenados = abonos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+        fechaReferencia = abonosOrdenados[0].fecha;
+      }
+
+      const fUltimo = new Date(fechaReferencia);
+      const fActual = new Date();
+      const diffMs = fActual - fUltimo;
+      const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const semanasSinPagar = Math.floor(diffDias / 7);
+
+      if (semanasSinPagar >= 4) {
+        return {
+          clase: "bg-rose-100 text-rose-800 border-rose-300",
+          dot: "bg-rose-500",
+          texto: `${semanasSinPagar} semanas sin pagar (Rojo)`,
+          semanas: semanasSinPagar
+        };
+      } else if (semanasSinPagar === 3) {
+        return {
+          clase: "bg-amber-100 text-amber-800 border-amber-300",
+          dot: "bg-amber-500",
+          texto: "3 semanas sin pagar (Amarillo)",
+          semanas: 3
+        };
+      } else {
+        // 0, 1 o 2 semanas de retraso (Verde)
+        const txtSem = semanasSinPagar === 0 ? "Al día" : `${semanasSinPagar} sem. retraso`;
+        return {
+          clase: "bg-emerald-100 text-emerald-800 border-emerald-300",
+          dot: "bg-emerald-500",
+          texto: `${txtSem} (Verde)`,
+          semanas: semanasSinPagar
+        };
+      }
+    }
+
     // Modal Nuevo Cliente
     function abrirModalNuevoCliente() {
       document.getElementById("modalNuevoCliente").classList.remove("hidden");
@@ -434,7 +520,7 @@
       const montoInicial = parseFloat(document.getElementById("modalMontoInicial").value);
 
       const newId = `CLI-${Math.floor(1000 + Math.random() * 9000)}`;
-      const fechaHora = new Date().toLocaleString("es-MX");
+      const fechaHoy = new Date().toISOString().split('T')[0];
 
       const nuevoCliente = {
         id: newId,
@@ -443,12 +529,12 @@
         totalPrestado: montoInicial,
         totalAbonado: 0,
         saldoPendiente: montoInicial,
-        fechaRegistro: new Date().toISOString().split('T')[0],
+        fechaRegistro: fechaHoy,
         creadoPor: appState.usuarioActivo,
         movimientos: [
           {
             id: `MOV-${Math.floor(100 + Math.random() * 900)}`,
-            fecha: fechaHora,
+            fecha: fechaHoy,
             tipo: "PRÉSTAMO INICIAL",
             monto: montoInicial,
             notas: "Apertura de préstamo",
@@ -476,7 +562,7 @@
       clienteSeleccionadoId = id;
       document.getElementById("selectClienteGlobal").value = id;
       actualizarFichaCliente();
-      window.scrollTo({ top: 100, behavior: 'smooth' });
+      window.scrollTo({ top: 120, behavior: 'smooth' });
     }
 
     function actualizarFichaCliente() {
@@ -495,8 +581,17 @@
 
       const cli = appState.clientes.find(c => c.id === clienteSeleccionadoId);
       if (cli) {
+        const estatus = obtenerEstatusMorosidad(cli);
+
         document.getElementById("fcNombre").textContent = cli.nombre;
         document.getElementById("fcTel").textContent = cli.telefono;
+
+        document.getElementById("fcBadgeEstatus").innerHTML = `
+          <span class="px-2.5 py-1 rounded-full text-xs font-bold border ${estatus.clase} inline-flex items-center gap-1.5 shadow-sm">
+            <span class="w-2 h-2 rounded-full ${estatus.dot}"></span> ${estatus.texto}
+          </span>
+        `;
+
         document.getElementById("fcPrestado").textContent = `$${cli.totalPrestado.toLocaleString("es-MX", {minimumFractionDigits:2})} MXN`;
         document.getElementById("fcAbonado").textContent = `$${cli.totalAbonado.toLocaleString("es-MX", {minimumFractionDigits:2})} MXN`;
         document.getElementById("fcSaldo").textContent = `$${cli.saldoPendiente.toLocaleString("es-MX", {minimumFractionDigits:2})} MXN`;
@@ -519,6 +614,7 @@
       if (!cli) return;
 
       const monto = parseFloat(document.getElementById("montoAbono").value);
+      const fechaP = document.getElementById("fechaAbono").value || hoyStr;
       const notas = document.getElementById("notasAbono").value.trim() || "Abono a cuenta";
 
       if (monto > cli.saldoPendiente + 0.01) {
@@ -526,12 +622,11 @@
         return;
       }
 
-      const fechaHora = new Date().toLocaleString("es-MX");
       const movId = `MOV-${Math.floor(100 + Math.random() * 900)}`;
 
       const mov = {
         id: movId,
-        fecha: fechaHora,
+        fecha: fechaP,
         tipo: "ABONO",
         monto: monto,
         notas: notas,
@@ -544,6 +639,7 @@
 
       guardarDatos();
       document.getElementById("formAbono").reset();
+      document.getElementById("fechaAbono").value = hoyStr;
       actualizarFichaCliente();
 
       mostrarTicket(cli, mov);
@@ -560,12 +656,12 @@
       const monto = parseFloat(document.getElementById("montoAumento").value);
       const motivo = document.getElementById("motivoAumento").value.trim() || "Incremento de préstamo";
 
-      const fechaHora = new Date().toLocaleString("es-MX");
+      const fechaHoy = new Date().toISOString().split('T')[0];
       const movId = `MOV-${Math.floor(100 + Math.random() * 900)}`;
 
       const mov = {
         id: movId,
-        fecha: fechaHora,
+        fecha: fechaHoy,
         tipo: "AUMENTO DE PRÉSTAMO",
         monto: monto,
         notas: motivo,
@@ -647,7 +743,7 @@ _¡Gracias por su preferencia!_`;
       window.open(url, '_blank');
     }
 
-    // Renderizar Tablas y Métricas del Encabezado
+    // Renderizar Tablas y Métricas
     function renderizarTodo() {
       let gPrestado = 0;
       let gAbonado = 0;
@@ -664,22 +760,29 @@ _¡Gracias por su preferencia!_`;
         gAbonado += c.totalAbonado;
         gSaldo += c.saldoPendiente;
 
+        const estatus = obtenerEstatusMorosidad(c);
+
         selectGlobal.innerHTML += `<option value="${c.id}" ${c.id === clienteSeleccionadoId ? 'selected' : ''}>${c.nombre} (Saldo: $${c.saldoPendiente.toFixed(2)})</option>`;
 
-        const ultMov = c.movimientos.length > 0 ? c.movimientos[c.movimientos.length - 1] : null;
-        const textoUltMov = ultMov ? `${ultMov.tipo} ($${ultMov.monto}) - ${ultMov.fecha}` : 'Sin movimientos';
+        const abonos = c.movimientos.filter(m => m.tipo === "ABONO");
+        const ultAbono = abonos.length > 0 ? abonos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha))[0] : null;
+        const txtUltPago = ultAbono ? `$${ultAbono.monto.toFixed(2)} el ${ultAbono.fecha}` : 'Sin abonos';
 
         tbodyCli.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
-            <td class="p-3 font-semibold text-indigo-700">${c.id}</td>
-            <td class="p-3 font-medium text-slate-800">${c.nombre}</td>
-            <td class="p-3 text-slate-500">${c.telefono}</td>
+            <td class="p-3 font-semibold text-rose-700">${c.id}</td>
+            <td class="p-3 font-medium text-slate-800">${c.nombre}<div class="text-[10px] text-slate-400">${c.telefono}</div></td>
+            <td class="p-3">
+              <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${estatus.clase} inline-flex items-center gap-1 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full ${estatus.dot}"></span> ${estatus.texto}
+              </span>
+            </td>
             <td class="p-3 font-medium text-slate-700">$${c.totalPrestado.toFixed(2)}</td>
             <td class="p-3 font-medium text-emerald-600">$${c.totalAbonado.toFixed(2)}</td>
             <td class="p-3 font-bold text-amber-600">$${c.saldoPendiente.toFixed(2)}</td>
-            <td class="p-3 text-[11px] text-slate-400">${textoUltMov}</td>
+            <td class="p-3 text-[11px] text-slate-500">${txtUltPago}</td>
             <td class="p-3 text-center">
-              <button onclick="seleccionarClienteDirecto('${c.id}')" title="Gobernar cliente" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-lg text-[11px]">
+              <button onclick="seleccionarClienteDirecto('${c.id}')" title="Gobernar cliente" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold rounded-lg text-[11px]">
                 <i class="fa-solid fa-hand-pointer"></i> Seleccionar
               </button>
             </td>
@@ -700,11 +803,11 @@ _¡Gracias por su preferencia!_`;
       let listaMovs = [];
       appState.clientes.forEach(c => {
         c.movimientos.forEach(m => {
-          listaMovs.push({ ...m, clienteNombre: c.nombre, clienteId: c.id, clienteObj: c });
+          listaMovs.push({ ...m, clienteNombre: c.nombre, clienteId: c.id });
         });
       });
 
-      listaMovs.reverse();
+      listaMovs.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
 
       listaMovs.slice(0, 15).forEach(m => {
         const badgeColor = m.tipo === "ABONO" 
@@ -718,7 +821,7 @@ _¡Gracias por su preferencia!_`;
             <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">${m.tipo}</span></td>
             <td class="p-3 font-bold text-slate-800">$${m.monto.toFixed(2)}</td>
             <td class="p-3 text-slate-500 text-[11px]">${m.notas}</td>
-            <td class="p-3 text-indigo-700 text-[11px] font-medium">${m.registradoPor || 'Sistema'}</td>
+            <td class="p-3 text-rose-700 text-[11px] font-medium">${m.registradoPor || 'Sistema'}</td>
             <td class="p-3 text-center">
               <button onclick='reimprimirMovimiento("${m.clienteId}", "${m.id}")' class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] rounded border">
                 <i class="fa-solid fa-receipt"></i> Ticket
@@ -742,7 +845,7 @@ _¡Gracias por su preferencia!_`;
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `prestamos_flexible_respaldo_${new Date().toISOString().split('T')[0]}.json`);
+      downloadAnchor.setAttribute("download", `prestamos_rosa_respaldo_${new Date().toISOString().split('T')[0]}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -757,7 +860,7 @@ _¡Gracias por su preferencia!_`;
             appState = imported;
             guardarDatos();
             renderizarUsuarios();
-            alert("¡Datos flexibles restaurados correctamente!");
+            alert("¡Datos restaurados correctamente!");
           }
         } catch (err) {
           alert("Error al leer el archivo JSON.");
@@ -769,16 +872,21 @@ _¡Gracias por su preferencia!_`;
     function exportarExcel() {
       const wb = XLSX.utils.book_new();
 
-      const carteraData = appState.clientes.map(c => ({
-        "ID Cliente": c.id,
-        "Nombre": c.nombre,
-        "Teléfono": c.telefono,
-        "Total Prestado Acumulado ($)": c.totalPrestado,
-        "Total Abonado ($)": c.totalAbonado,
-        "Saldo Pendiente Actual ($)": c.saldoPendiente,
-        "Fecha Registro": c.fechaRegistro,
-        "Creado Por": c.creadoPor
-      }));
+      const carteraData = appState.clientes.map(c => {
+        const est = obtenerEstatusMorosidad(c);
+        return {
+          "ID Cliente": c.id,
+          "Nombre": c.nombre,
+          "Teléfono": c.telefono,
+          "Estatus de Pago": est.texto,
+          "Semanas sin pagar": est.semanas,
+          "Total Prestado Acumulado ($)": c.totalPrestado,
+          "Total Abonado ($)": c.totalAbonado,
+          "Saldo Pendiente Actual ($)": c.saldoPendiente,
+          "Fecha Registro": c.fechaRegistro,
+          "Creado Por": c.creadoPor
+        };
+      });
       const ws1 = XLSX.utils.json_to_sheet(carteraData);
       XLSX.utils.book_append_sheet(wb, ws1, "Cartera de Clientes");
 
@@ -800,7 +908,7 @@ _¡Gracias por su preferencia!_`;
       const ws2 = XLSX.utils.json_to_sheet(movsData);
       XLSX.utils.book_append_sheet(wb, ws2, "Movimientos Globales");
 
-      XLSX.writeFile(wb, `Reporte_Clientes_Flexible_${new Date().toISOString().split('T')[0]}.xlsx`);
+      XLSX.writeFile(wb, `Reporte_Prestamos_Rosa_${new Date().toISOString().split('T')[0]}.xlsx`);
     }
   </script>
 </body>
