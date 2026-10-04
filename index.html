@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Control de Préstamos Semanales</title>
+  <title>Sistema de Control de Préstamos e Incrementos</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -18,211 +18,302 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col">
 
-  <!-- Header -->
-  <header class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
+  <!-- Header Global -->
+  <header class="bg-indigo-900 text-white shadow-xl sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4 border-b border-indigo-800/60">
       <div class="flex items-center space-x-3">
-        <i class="fa-solid fa-hand-holding-dollar text-2xl text-amber-300"></i>
+        <div class="p-2 bg-amber-400 text-indigo-950 rounded-xl shadow-inner">
+          <i class="fa-solid fa-vault text-xl"></i>
+        </div>
         <div>
-          <h1 class="text-xl font-bold leading-tight">CrediSimple - Control de Préstamos</h1>
-          <p class="text-xs text-indigo-200">Modelo JSON Schema (Sin Base de Datos / LocalStorage)</p>
+          <h1 class="text-lg font-bold leading-tight tracking-wide">CrediSimple - Control Flexible</h1>
+          <p class="text-xs text-indigo-300">Préstamos Abiertos • Sin Plazo Fijo • Registro de Incrementos</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="exportDataJSON()" class="bg-indigo-600 hover:bg-indigo-500 text-xs text-white py-2 px-3 rounded-lg flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-download"></i> Respaldar JSON
+
+      <!-- Selector de Usuario Activo -->
+      <div class="flex items-center gap-2 bg-indigo-950/80 px-3 py-1.5 rounded-xl border border-indigo-700/50">
+        <i class="fa-solid fa-user-gear text-amber-300 text-sm"></i>
+        <span class="text-xs text-indigo-200">Usuario:</span>
+        <select id="selectUsuarioActivo" onchange="cambiarUsuarioActivo()" class="bg-indigo-900 text-white text-xs font-semibold py-1 px-2 rounded border border-indigo-700 focus:outline-none cursor-pointer">
+        </select>
+        <button onclick="nuevoUsuarioModal()" title="Agregar nuevo cobrador/usuario" class="text-xs bg-indigo-700 hover:bg-indigo-600 text-white px-2 py-1 rounded transition">
+          <i class="fa-solid fa-user-plus"></i>
         </button>
-        <label class="bg-indigo-600 hover:bg-indigo-500 text-xs text-white py-2 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer transition">
-          <i class="fa-solid fa-upload"></i> Cargar JSON
+      </div>
+
+      <!-- Acciones de Backup -->
+      <div class="flex items-center gap-2">
+        <button onclick="exportDataJSON()" class="bg-indigo-800 hover:bg-indigo-700 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+          <i class="fa-solid fa-download"></i> Respaldar
+        </button>
+        <label class="bg-indigo-800 hover:bg-indigo-700 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer transition shadow-sm">
+          <i class="fa-solid fa-upload"></i> Cargar
           <input type="file" id="importJsonInput" accept=".json" class="hidden" onchange="importDataJSON(event)">
         </label>
-        <button onclick="clearData()" class="bg-rose-600 hover:bg-rose-500 text-xs text-white py-2 px-3 rounded-lg flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-trash"></i> Reiniciar
+        <button onclick="clearData()" class="bg-rose-700 hover:bg-rose-600 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+          <i class="fa-solid fa-rotate-left"></i> Reiniciar
         </button>
+      </div>
+    </div>
+
+    <!-- Panel de Métricas Globales en Encabezado -->
+    <div class="bg-indigo-800/90 py-3 border-t border-indigo-700/40">
+      <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+        <div class="bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-700/30">
+          <span class="text-[11px] font-medium text-indigo-200 uppercase tracking-wider block">Clientes Registrados</span>
+          <span id="hdrTotalClientes" class="text-lg font-bold text-white">0</span>
+        </div>
+        <div class="bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-700/30">
+          <span class="text-[11px] font-medium text-indigo-200 uppercase tracking-wider block">Total Prestado Global</span>
+          <span id="hdrTotalPrestado" class="text-lg font-bold text-amber-300">$0.00</span>
+        </div>
+        <div class="bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-700/30">
+          <span class="text-[11px] font-medium text-indigo-200 uppercase tracking-wider block">Total Pagado / Cobrado</span>
+          <span id="hdrTotalPagado" class="text-lg font-bold text-emerald-300">$0.00</span>
+        </div>
+        <div class="bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-700/30">
+          <span class="text-[11px] font-medium text-indigo-200 uppercase tracking-wider block">Saldo Pendiente Activo</span>
+          <span id="hdrSaldoPendiente" class="text-lg font-bold text-amber-400">$0.00</span>
+        </div>
       </div>
     </div>
   </header>
 
   <!-- Container Principal -->
-  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
 
-    <!-- Panel Izquierdo: Formularios -->
-    <div class="lg:col-span-4 space-y-6">
-
-      <!-- Métricas Rápidas -->
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-          <span class="text-xs font-semibold text-slate-500 uppercase">Total Prestado</span>
-          <p id="statTotalPrestado" class="text-lg font-bold text-slate-800">$0.00</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-          <span class="text-xs font-semibold text-slate-500 uppercase">Saldo Pendiente</span>
-          <p id="statSaldoPendiente" class="text-lg font-bold text-amber-600">$0.00</p>
-        </div>
-      </div>
-
-      <!-- Formulario 1: Nuevo Cliente / Préstamo -->
-      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-        <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-user-plus text-indigo-600"></i> Nuevo Préstamo Semanal
+    <!-- SECCIÓN DE SELECCIÓN Y GESTIÓN RÁPIDA DE CLIENTE -->
+    <section class="bg-white p-5 rounded-2xl shadow-md border border-slate-200 space-y-4">
+      <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
+        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-address-book text-indigo-600"></i> Selector de Cliente y Estado de Cuenta
         </h2>
-        <form id="formPrestamo" onsubmit="crearPrestamo(event)" class="space-y-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Nombre del Cliente *</label>
-            <input type="text" id="nombreCliente" required placeholder="Ej. Maria Rodríguez" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Teléfono / WhatsApp *</label>
-            <input type="tel" id="telefonoCliente" required placeholder="Ej. 5512345678" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1">Monto ($ MXN) *</label>
-              <input type="number" id="montoPrestamo" min="100" step="50" required placeholder="12000" oninput="calcularCuota()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1">Plazo (Semanas) *</label>
-              <input type="number" id="plazoSemanas" min="1" max="104" value="12" required oninput="calcularCuota()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            </div>
-          </div>
-
-          <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-100 flex justify-between items-center text-xs">
-            <span class="text-indigo-800 font-medium">Abono Semanal (0% int.):</span>
-            <span id="previewCuota" class="text-sm font-bold text-indigo-900">$0.00</span>
-          </div>
-
-          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2">
-            <i class="fa-solid fa-plus-circle"></i> Registrar Préstamo
+        <div class="flex items-center gap-2">
+          <button onclick="exportarExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-3 rounded-xl flex items-center gap-1.5 transition shadow-sm">
+            <i class="fa-solid fa-file-excel"></i> Exportar a Excel
           </button>
-        </form>
+        </div>
       </div>
 
-      <!-- Formulario 2: Registrar Abono -->
-      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-        <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-receipt text-emerald-600"></i> Registrar Abono / Pago
-        </h2>
-        <form id="formAbono" onsubmit="registrarAbono(event)" class="space-y-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Seleccionar Préstamo Activo *</label>
-            <select id="selectPrestamo" required onchange="actualizarInfoAbono()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-              <option value="">-- Seleccionar cliente --</option>
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        <div class="md:col-span-8">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Seleccionar Cliente para ver Estado de Cuenta o Realizar Operación:</label>
+          <div class="flex gap-2">
+            <select id="selectClienteGlobal" onchange="cargarEstadoClienteSeleccionado()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">-- Selecciona un cliente registrado --</option>
             </select>
           </div>
-
-          <div id="infoAbono" class="hidden p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1">
-            <div class="flex justify-between"><span>Abono Sugerido:</span><span id="abonoSugerido" class="font-bold"></span></div>
-            <div class="flex justify-between"><span>Saldo Actual:</span><span id="saldoActual" class="font-bold text-amber-600"></span></div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Monto Abonado ($ MXN) *</label>
-            <input type="number" id="montoAbono" step="10" min="1" required placeholder="1000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-          </div>
-
-          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2">
-            <i class="fa-solid fa-check-circle"></i> Guardar Abono y Generar Ticket
+        </div>
+        <div class="md:col-span-4 flex justify-end">
+          <button onclick="abrirModalNuevoCliente()" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
+            <i class="fa-solid fa-user-plus"></i> Registrar Nuevo Cliente
           </button>
-        </form>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Ficha de Cliente Seleccionado -->
+      <div id="fichaCliente" class="hidden bg-slate-50 p-4 rounded-xl border border-indigo-100 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Cliente</span>
+          <span id="fcNombre" class="text-base font-bold text-indigo-900 block"></span>
+          <span id="fcTel" class="text-xs text-slate-500"></span>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Total Prestado Acumulado</span>
+          <span id="fcPrestado" class="text-base font-bold text-slate-800"></span>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Total Abonado</span>
+          <span id="fcAbonado" class="text-base font-bold text-emerald-600"></span>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Saldo Pendiente Actual</span>
+          <span id="fcSaldo" class="text-lg font-black text-amber-600"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANELES DE OPERACIONES: AUMENTAR Y ABONAR -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Operación 1: Registrar Abono -->
+      <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-200 flex flex-col justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2 border-b pb-2">
+            <i class="fa-solid fa-hand-holding-hand text-emerald-600"></i> Registrar Abono (Pago)
+          </h2>
+          <form id="formAbono" onsubmit="registrarAbono(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Cliente Receptor *</label>
+              <input type="text" id="abonoClienteNombre" readonly placeholder="Seleccione un cliente arriba" class="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Monto Abonado ($ MXN) *</label>
+              <input type="number" id="montoAbono" step="any" min="0.01" required placeholder="Ej. 500" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Notas / Observación (Opcional)</label>
+              <input type="text" id="notasAbono" placeholder="Ej. Pago semanal parcial" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+            <button type="submit" id="btnAbono" disabled class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
+              <i class="fa-solid fa-circle-check"></i> Registrar Abono y Ticket
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Operación 2: Aumentar Préstamo -->
+      <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-200 flex flex-col justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2 border-b pb-2">
+            <i class="fa-solid fa-money-bill-trend-up text-amber-600"></i> Aumentar Préstamo (Nuevo Crédito)
+          </h2>
+          <form id="formAumento" onsubmit="registrarAumento(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Cliente a Ampliar Crédito *</label>
+              <input type="text" id="aumentoClienteNombre" readonly placeholder="Seleccione un cliente arriba" class="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Monto Adicional a Entregar ($ MXN) *</label>
+              <input type="number" id="montoAumento" step="any" min="1" required placeholder="Ej. 2000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Motivo / Concepto del Aumento (Opcional)</label>
+              <input type="text" id="motivoAumento" placeholder="Ej. Ampliación de préstamo comercial" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <button type="submit" id="btnAumento" disabled class="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-slate-300 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
+              <i class="fa-solid fa-plus-circle"></i> Aumentar Saldo del Cliente
+            </button>
+          </form>
+        </div>
       </div>
 
     </div>
 
-    <!-- Panel Derecho: Tablas de Créditos y Reportes -->
-    <div class="lg:col-span-8 space-y-6">
-
-      <!-- Tabla de Préstamos Activos -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-4 bg-slate-100 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
-          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-list-check text-indigo-600"></i> Cartera de Préstamos
-          </h2>
-          <button onclick="exportarExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 px-3 rounded-lg flex items-center gap-1.5 transition">
-            <i class="fa-solid fa-file-excel"></i> Exportar Reporte Excel
-          </button>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-200">
-              <tr>
-                <th class="p-3">Folio</th>
-                <th class="p-3">Cliente</th>
-                <th class="p-3">Monto Total</th>
-                <th class="p-3">Cuota Semanal</th>
-                <th class="p-3">Saldo Restante</th>
-                <th class="p-3">Estado</th>
-                <th class="p-3 text-center">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tablaPrestamos" class="divide-y divide-slate-200">
-              <!-- Cargado dinámicamente -->
-            </tbody>
-          </table>
-        </div>
+    <!-- HISTORIAL Y CARTERA GLOBAL DE CLIENTES -->
+    <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+      <div class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
+        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-users text-indigo-600"></i> Resumen de Cartera y Movimientos
+        </h2>
       </div>
 
-      <!-- Historial de Últimos Abonos -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-4 bg-slate-100 border-b border-slate-200">
-          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Historial Reciente de Pagos
-          </h2>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-200">
-              <tr>
-                <th class="p-3">Fecha</th>
-                <th class="p-3">Cliente</th>
-                <th class="p-3">Semana #</th>
-                <th class="p-3">Monto Abonado</th>
-                <th class="p-3 text-center">Comprobante</th>
-              </tr>
-            </thead>
-            <tbody id="tablaPagos" class="divide-y divide-slate-200">
-              <!-- Cargado dinámicamente -->
-            </tbody>
-          </table>
-        </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-200">
+            <tr>
+              <th class="p-3">ID Cliente</th>
+              <th class="p-3">Cliente</th>
+              <th class="p-3">Teléfono</th>
+              <th class="p-3">Total Prestado</th>
+              <th class="p-3">Total Abonado</th>
+              <th class="p-3">Saldo Actual</th>
+              <th class="p-3">Último Movimiento</th>
+              <th class="p-3 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaClientes" class="divide-y divide-slate-200">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MOVIMIENTOS RECIENTES -->
+    <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+      <div class="p-4 bg-slate-100 border-b border-slate-200">
+        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Historial Global de Movimientos (Abonos y Aumentos)
+        </h2>
       </div>
 
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-200">
+            <tr>
+              <th class="p-3">Fecha y Hora</th>
+              <th class="p-3">Cliente</th>
+              <th class="p-3">Tipo de Operación</th>
+              <th class="p-3">Monto</th>
+              <th class="p-3">Notas</th>
+              <th class="p-3">Registrado por</th>
+              <th class="p-3 text-center">Ticket</th>
+            </tr>
+          </thead>
+          <tbody id="tablaMovimientos" class="divide-y divide-slate-200">
+          </tbody>
+        </table>
+      </div>
     </div>
 
   </main>
 
-  <!-- Modal de Ticket / Comprobante -->
+  <!-- MODAL NUEVO CLIENTE -->
+  <div id="modalNuevoCliente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-indigo-600"></i> Registrar Nuevo Cliente
+        </h3>
+        <button onclick="cerrarModalNuevoCliente()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="guardarNuevoCliente(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Nombre Completo del Cliente *</label>
+          <input type="text" id="modalNombreCliente" required placeholder="Ej. Maria Rodríguez" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Teléfono / WhatsApp *</label>
+          <input type="tel" id="modalTelefonoCliente" required placeholder="Ej. 5512345678" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Monto del Préstamo Inicial ($ MXN) *</label>
+          <input type="number" id="modalMontoInicial" min="1" step="any" required placeholder="Ej. 5000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="cerrarModalNuevoCliente()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg">Guardar y Abrir Préstamo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE TICKET / COMPROBANTE -->
   <div id="modalComprobante" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
         <h3 class="font-bold text-slate-800 flex items-center gap-2">
-          <i class="fa-solid fa-receipt text-indigo-600"></i> Comprobante de Pago
+          <i class="fa-solid fa-receipt text-indigo-600"></i> Comprobante de Operación
         </h3>
-        <button onclick="cerrarModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button onclick="cerrarModalComprobante()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
       <!-- Ticket Imprimible / Vista Previa -->
       <div id="ticket-print" class="bg-slate-50 p-4 rounded-xl border border-slate-200 font-mono text-xs space-y-2">
         <div class="text-center font-bold text-slate-800 uppercase tracking-wider border-b pb-2">
-          *** COMPROBANTE DE PAGO ***<br>
+          *** COMPROBANTE DE MOVIMIENTO ***<br>
           <span id="ticketFecha" class="text-[10px] font-normal text-slate-500"></span>
         </div>
         <div class="space-y-1 py-1">
-          <div class="flex justify-between"><span>Folio Pago:</span><span id="ticketFolio" class="font-bold"></span></div>
+          <div class="flex justify-between"><span>Folio:</span><span id="ticketFolio" class="font-bold"></span></div>
+          <div class="flex justify-between"><span>Tipo:</span><span id="ticketTipo" class="font-bold"></span></div>
           <div class="flex justify-between"><span>Cliente:</span><span id="ticketCliente" class="font-bold"></span></div>
           <div class="flex justify-between"><span>Teléfono:</span><span id="ticketTelefono"></span></div>
+          <div class="flex justify-between border-t pt-1"><span>Atendido por:</span><span id="ticketAtendidoPor" class="font-bold"></span></div>
           <hr class="my-1 border-dashed">
-          <div class="flex justify-between text-emerald-700 font-bold"><span>ABONO REALIZADO:</span><span id="ticketMonto"></span></div>
-          <div class="flex justify-between"><span>Semana #:</span><span id="ticketSemana"></span></div>
+          <div class="flex justify-between font-bold"><span id="ticketLabelMonto">MONTO:</span><span id="ticketMonto"></span></div>
+          <div class="flex justify-between text-[11px] text-slate-600"><span>Notas:</span><span id="ticketNotas"></span></div>
           <hr class="my-1 border-dashed">
-          <div class="flex justify-between"><span>Monto Préstamo:</span><span id="ticketMontoTotal"></span></div>
-          <div class="flex justify-between"><span>Total Cobrado:</span><span id="ticketTotalPagado"></span></div>
+          <div class="flex justify-between"><span>Total Prestado:</span><span id="ticketMontoTotal"></span></div>
+          <div class="flex justify-between"><span>Total Abonado:</span><span id="ticketTotalPagado"></span></div>
           <div class="flex justify-between text-amber-700 font-bold"><span>SALDO PENDIENTE:</span><span id="ticketSaldoRestante"></span></div>
         </div>
         <div class="text-center text-[10px] text-slate-500 border-t pt-2">
-          ¡Gracias por su pago puntual!
+          Control Abierto de Préstamos • ¡Gracias!
         </div>
       </div>
 
@@ -238,344 +329,398 @@
     </div>
   </div>
 
-  <!-- Lógica JavaScript Pure Vanilla + LocalStorage & JSON Schema -->
+  <!-- Lógica JavaScript Pure Vanilla + LocalStorage & Modelo Flexible -->
   <script>
-    // ----------------------------------------------------
-    // ESQUEMA JSON DE LA BASE DE DATOS LOCAL
-    // ----------------------------------------------------
-    const JSON_SCHEMA_TEMPLATE = {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "SistemaPrestamosSemanalesDB",
-      "type": "object",
-      "properties": {
-        "meta": {
-          "type": "object",
-          "properties": {
-            "version": { "type": "string" },
-            "fechaActualizacion": { "type": "string" }
-          }
-        },
-        "prestamos": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "id": { "type": "string" },
-              "cliente": { "type": "string" },
-              "telefono": { "type": "string" },
-              "monto": { "type": "number" },
-              "plazoSemanas": { "type": "number" },
-              "montoSemanal": { "type": "number" },
-              "saldoPendiente": { "type": "number" },
-              "fechaInicio": { "type": "string" },
-              "estado": { "type": "string", "enum": ["activo", "liquidado"] },
-              "pagos": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "idPago": { "type": "string" },
-                    "fecha": { "type": "string" },
-                    "montoAbonado": { "type": "number" },
-                    "numeroSemana": { "type": "number" }
-                  }
-                }
-              }
-            },
-            "required": ["id", "cliente", "monto", "plazoSemanas", "montoSemanal", "saldoPendiente", "estado"]
-          }
-        }
-      }
-    };
-
-    // Estado inicial de la base de datos local
+    // Estado inicial de la base de datos local (Modelo Abierto sin plazo)
     let appState = {
-      meta: { version: "1.0.0", fechaActualizacion: new Date().toISOString() },
-      prestamos: [
+      meta: { version: "2.0.0", fechaActualizacion: new Date().toISOString() },
+      usuarioActivo: "Administrador",
+      usuarios: ["Administrador", "Luis López", "Cobrador 1"],
+      clientes: [
         {
-          id: "PRS-1001",
-          cliente: "María Rodríguez",
+          id: "CLI-1001",
+          nombre: "María Rodríguez",
           telefono: "5512345678",
-          monto: 12000,
-          plazoSemanas: 12,
-          montoSemanal: 1000,
-          saldoPendiente: 8000,
-          fechaInicio: "2026-09-01",
-          estado: "activo",
-          pagos: [
-            { idPago: "PAG-001", fecha: "2026-09-08 10:00", montoAbonado: 1000, numeroSemana: 1 },
-            { idPago: "PAG-002", fecha: "2026-09-15 11:30", montoAbonado: 1000, numeroSemana: 2 },
-            { idPago: "PAG-003", fecha: "2026-09-22 09:15", montoAbonado: 1000, numeroSemana: 3 },
-            { idPago: "PAG-004", fecha: "2026-09-29 16:45", montoAbonado: 1000, numeroSemana: 4 }
+          totalPrestado: 12000,
+          totalAbonado: 4101,
+          saldoPendiente: 7899,
+          fechaRegistro: "2026-09-01",
+          creadoPor: "Administrador",
+          movimientos: [
+            { id: "MOV-001", fecha: "2026-09-01 10:00", tipo: "PRÉSTAMO INICIAL", monto: 12000, notas: "Apertura de crédito", registradoPor: "Administrador" },
+            { id: "MOV-002", fecha: "2026-09-08 10:00", tipo: "ABONO", monto: 1000, notas: "Abono 1", registradoPor: "Luis López" },
+            { id: "MOV-003", fecha: "2026-09-15 11:30", tipo: "ABONO", monto: 1000, notas: "Abono 2", registradoPor: "Luis López" },
+            { id: "MOV-004", fecha: "2026-09-22 09:15", tipo: "ABONO", monto: 1000, notas: "Abono 3", registradoPor: "Cobrador 1" },
+            { id: "MOV-005", fecha: "2026-09-29 16:45", tipo: "ABONO", monto: 1101, notas: "Abono 4", registradoPor: "Administrador" }
           ]
         }
       ]
     };
 
+    let clienteSeleccionadoId = null;
     let comprobanteActual = null;
 
-    // Inicialización al cargar la página
     document.addEventListener("DOMContentLoaded", () => {
       cargarDatos();
+      renderizarUsuarios();
       renderizarTodo();
     });
 
-    // Guardar en LocalStorage
     function guardarDatos() {
       appState.meta.fechaActualizacion = new Date().toISOString();
-      localStorage.setItem("sistema_prestamos_db", JSON.stringify(appState));
+      localStorage.setItem("sistema_prestamos_flexible_db", JSON.stringify(appState));
       renderizarTodo();
     }
 
-    // Cargar de LocalStorage
     function cargarDatos() {
-      const data = localStorage.getItem("sistema_prestamos_db");
+      const data = localStorage.getItem("sistema_prestamos_flexible_db");
       if (data) {
         try {
-          appState = JSON.parse(data);
+          const parsed = JSON.parse(data);
+          appState = { ...appState, ...parsed };
         } catch (e) {
-          console.error("Error al parsear el JSON", e);
+          console.error("Error al cargar JSON local", e);
         }
       }
     }
 
-    // Reiniciar datos
     function clearData() {
-      if (confirm("¿Estás seguro de reiniciar los datos al estado por defecto?")) {
-        localStorage.removeItem("sistema_prestamos_db");
+      if (confirm("¿Estás seguro de reiniciar todos los datos al estado inicial?")) {
+        localStorage.removeItem("sistema_prestamos_flexible_db");
         location.reload();
       }
     }
 
-    // Calcular la cuota en tiempo real
-    function calcularCuota() {
-      const monto = parseFloat(document.getElementById("montoPrestamo").value) || 0;
-      const semanas = parseInt(document.getElementById("plazoSemanas").value) || 1;
-      const cuota = monto / semanas;
-      document.getElementById("previewCuota").textContent = `$${cuota.toFixed(2)} MXN`;
+    function renderizarUsuarios() {
+      const select = document.getElementById("selectUsuarioActivo");
+      select.innerHTML = "";
+      appState.usuarios.forEach(u => {
+        const isSelected = u === appState.usuarioActivo ? "selected" : "";
+        select.innerHTML += `<option value="${u}" ${isSelected}>${u}</option>`;
+      });
     }
 
-    // Crear nuevo préstamo
-    function crearPrestamo(e) {
-      e.preventDefault();
-      const nombre = document.getElementById("nombreCliente").value.trim();
-      const telefono = document.getElementById("telefonoCliente").value.trim();
-      const monto = parseFloat(document.getElementById("montoPrestamo").value);
-      const semanas = parseInt(document.getElementById("plazoSemanas").value);
-
-      const nuevoPrestamo = {
-        id: `PRS-${Math.floor(1000 + Math.random() * 9000)}`,
-        cliente: nombre,
-        telefono: telefono,
-        monto: monto,
-        plazoSemanas: semanas,
-        montoSemanal: monto / semanas,
-        saldoPendiente: monto,
-        fechaInicio: new Date().toISOString().split('T')[0],
-        estado: "activo",
-        pagos: []
-      };
-
-      appState.prestamos.unshift(nuevoPrestamo);
+    function cambiarUsuarioActivo() {
+      appState.usuarioActivo = document.getElementById("selectUsuarioActivo").value;
       guardarDatos();
-      document.getElementById("formPrestamo").reset();
-      calcularCuota();
-      alert(`Préstamo ${nuevoPrestamo.id} registrado con éxito.`);
     }
 
-    // ACTUALIZAR INFORMACIÓN DE ABONO SEGÚN PRÉSTAMO SELECCIONADO
-    function actualizarInfoAbono() {
-      const select = document.getElementById("selectPrestamo");
-      const id = select.value;
-      const infoDiv = document.getElementById("infoAbono");
-      const inputAbono = document.getElementById("montoAbono");
-
-      if (!id) {
-        infoDiv.classList.add("hidden");
-        inputAbono.removeAttribute("max"); // Se elimina la restricción si no hay selección
-        return;
-      }
-
-      const p = appState.prestamos.find(item => item.id === id);
-      if (p) {
-        document.getElementById("abonoSugerido").textContent = `$${p.montoSemanal.toFixed(2)} MXN`;
-        document.getElementById("saldoActual").textContent = `$${p.saldoPendiente.toFixed(2)} MXN`;
-
-        inputAbono.value = p.montoSemanal;
-        inputAbono.max = p.saldoPendiente; // Asigna el límite exacto del saldo del cliente
-        infoDiv.classList.remove("hidden");
+    function nuevoUsuarioModal() {
+      const nuevoNombre = prompt("Nombre del nuevo usuario / cobrador:");
+      if (nuevoNombre && nuevoNombre.trim() !== "") {
+        const nombreLimpio = nuevoNombre.trim();
+        if (!appState.usuarios.includes(nombreLimpio)) {
+          appState.usuarios.push(nombreLimpio);
+          appState.usuarioActivo = nombreLimpio;
+          renderizarUsuarios();
+          guardarDatos();
+        }
       }
     }
 
-    // Registrar un abono
-    function registrarAbono(e) {
+    // Modal Nuevo Cliente
+    function abrirModalNuevoCliente() {
+      document.getElementById("modalNuevoCliente").classList.remove("hidden");
+    }
+
+    function cerrarModalNuevoCliente() {
+      document.getElementById("modalNuevoCliente").classList.add("hidden");
+    }
+
+    function guardarNuevoCliente(e) {
       e.preventDefault();
-      const idPrestamo = document.getElementById("selectPrestamo").value;
-      const montoAbono = parseFloat(document.getElementById("montoAbono").value);
+      const nombre = document.getElementById("modalNombreCliente").value.trim();
+      const tel = document.getElementById("modalTelefonoCliente").value.trim();
+      const montoInicial = parseFloat(document.getElementById("modalMontoInicial").value);
 
-      const p = appState.prestamos.find(item => item.id === idPrestamo);
-      if (!p) return;
-
-      if (montoAbono > p.saldoPendiente) {
-        alert("El monto abonado excede el saldo pendiente.");
-        return;
-      }
-
-      const numSemana = p.pagos.length + 1;
-      const idPago = `PAG-${Math.floor(100 + Math.random() * 900)}`;
+      const newId = `CLI-${Math.floor(1000 + Math.random() * 9000)}`;
       const fechaHora = new Date().toLocaleString("es-MX");
 
-      const nuevoPago = {
-        idPago: idPago,
-        fecha: fechaHora,
-        montoAbonado: montoAbono,
-        numeroSemana: numSemana
+      const nuevoCliente = {
+        id: newId,
+        nombre: nombre,
+        telefono: tel,
+        totalPrestado: montoInicial,
+        totalAbonado: 0,
+        saldoPendiente: montoInicial,
+        fechaRegistro: new Date().toISOString().split('T')[0],
+        creadoPor: appState.usuarioActivo,
+        movimientos: [
+          {
+            id: `MOV-${Math.floor(100 + Math.random() * 900)}`,
+            fecha: fechaHora,
+            tipo: "PRÉSTAMO INICIAL",
+            monto: montoInicial,
+            notas: "Apertura de préstamo",
+            registradoPor: appState.usuarioActivo
+          }
+        ]
       };
 
-      p.pagos.push(nuevoPago);
-      p.saldoPendiente -= montoAbono;
-      if (p.saldoPendiente <= 0) {
-        p.saldoPendiente = 0;
-        p.estado = "liquidado";
+      appState.clientes.unshift(nuevoCliente);
+      clienteSeleccionadoId = newId;
+      guardarDatos();
+      cerrarModalNuevoCliente();
+      document.getElementById("modalNombreCliente").value = "";
+      document.getElementById("modalTelefonoCliente").value = "";
+      document.getElementById("modalMontoInicial").value = "";
+    }
+
+    // Cargar Selección de Cliente
+    function cargarEstadoClienteSeleccionado() {
+      clienteSeleccionadoId = document.getElementById("selectClienteGlobal").value;
+      actualizarFichaCliente();
+    }
+
+    function seleccionarClienteDirecto(id) {
+      clienteSeleccionadoId = id;
+      document.getElementById("selectClienteGlobal").value = id;
+      actualizarFichaCliente();
+      window.scrollTo({ top: 100, behavior: 'smooth' });
+    }
+
+    function actualizarFichaCliente() {
+      const ficha = document.getElementById("fichaCliente");
+      const btnAbono = document.getElementById("btnAbono");
+      const btnAumento = document.getElementById("btnAumento");
+
+      if (!clienteSeleccionadoId) {
+        ficha.classList.add("hidden");
+        document.getElementById("abonoClienteNombre").value = "";
+        document.getElementById("aumentoClienteNombre").value = "";
+        btnAbono.disabled = true;
+        btnAumento.disabled = true;
+        return;
       }
+
+      const cli = appState.clientes.find(c => c.id === clienteSeleccionadoId);
+      if (cli) {
+        document.getElementById("fcNombre").textContent = cli.nombre;
+        document.getElementById("fcTel").textContent = cli.telefono;
+        document.getElementById("fcPrestado").textContent = `$${cli.totalPrestado.toLocaleString("es-MX", {minimumFractionDigits:2})} MXN`;
+        document.getElementById("fcAbonado").textContent = `$${cli.totalAbonado.toLocaleString("es-MX", {minimumFractionDigits:2})} MXN`;
+        document.getElementById("fcSaldo").textContent = `$${cli.saldoPendiente.toLocaleString("es-MX", {minimumFractionDigits:2})} MXN`;
+        ficha.classList.remove("hidden");
+
+        document.getElementById("abonoClienteNombre").value = `${cli.nombre} (Saldo: $${cli.saldoPendiente.toFixed(2)})`;
+        document.getElementById("aumentoClienteNombre").value = `${cli.nombre} (Saldo actual: $${cli.saldoPendiente.toFixed(2)})`;
+
+        btnAbono.disabled = false;
+        btnAumento.disabled = false;
+      }
+    }
+
+    // Registrar Abono
+    function registrarAbono(e) {
+      e.preventDefault();
+      if (!clienteSeleccionadoId) return;
+
+      const cli = appState.clientes.find(c => c.id === clienteSeleccionadoId);
+      if (!cli) return;
+
+      const monto = parseFloat(document.getElementById("montoAbono").value);
+      const notas = document.getElementById("notasAbono").value.trim() || "Abono a cuenta";
+
+      if (monto > cli.saldoPendiente + 0.01) {
+        alert("El monto ingresado excede el saldo pendiente del cliente.");
+        return;
+      }
+
+      const fechaHora = new Date().toLocaleString("es-MX");
+      const movId = `MOV-${Math.floor(100 + Math.random() * 900)}`;
+
+      const mov = {
+        id: movId,
+        fecha: fechaHora,
+        tipo: "ABONO",
+        monto: monto,
+        notas: notas,
+        registradoPor: appState.usuarioActivo
+      };
+
+      cli.totalAbonado += monto;
+      cli.saldoPendiente = Math.max(0, cli.saldoPendiente - monto);
+      cli.movimientos.push(mov);
 
       guardarDatos();
       document.getElementById("formAbono").reset();
-      document.getElementById("infoAbono").classList.add("hidden");
+      actualizarFichaCliente();
 
-      // Preparar y mostrar ticket
-      mostrarComprobante(p, nuevoPago);
+      mostrarTicket(cli, mov);
     }
 
-    // Mostrar modal con el comprobante
-    function mostrarComprobante(prestamo, pago) {
-      const totalPagado = prestamo.monto - prestamo.saldoPendiente;
+    // Registrar Aumento de Préstamo
+    function registrarAumento(e) {
+      e.preventDefault();
+      if (!clienteSeleccionadoId) return;
 
+      const cli = appState.clientes.find(c => c.id === clienteSeleccionadoId);
+      if (!cli) return;
+
+      const monto = parseFloat(document.getElementById("montoAumento").value);
+      const motivo = document.getElementById("motivoAumento").value.trim() || "Incremento de préstamo";
+
+      const fechaHora = new Date().toLocaleString("es-MX");
+      const movId = `MOV-${Math.floor(100 + Math.random() * 900)}`;
+
+      const mov = {
+        id: movId,
+        fecha: fechaHora,
+        tipo: "AUMENTO DE PRÉSTAMO",
+        monto: monto,
+        notas: motivo,
+        registradoPor: appState.usuarioActivo
+      };
+
+      cli.totalPrestado += monto;
+      cli.saldoPendiente += monto;
+      cli.movimientos.push(mov);
+
+      guardarDatos();
+      document.getElementById("formAumento").reset();
+      actualizarFichaCliente();
+
+      mostrarTicket(cli, mov);
+    }
+
+    // Ticket / Comprobante
+    function mostrarTicket(cliente, mov) {
       comprobanteActual = {
-        folio: pago.idPago,
-        cliente: prestamo.cliente,
-        telefono: prestamo.telefono,
-        fecha: pago.fecha,
-        monto: pago.montoAbonado,
-        semana: `${pago.numeroSemana} de ${prestamo.plazoSemanas}`,
-        montoTotal: prestamo.monto,
-        totalPagado: totalPagado,
-        saldoRestante: prestamo.saldoPendiente
+        folio: mov.id,
+        tipo: mov.tipo,
+        cliente: cliente.nombre,
+        telefono: cliente.telefono,
+        fecha: mov.fecha,
+        monto: mov.monto,
+        notas: mov.notas,
+        totalPrestado: cliente.totalPrestado,
+        totalAbonado: cliente.totalAbonado,
+        saldoPendiente: cliente.saldoPendiente,
+        atendidoPor: mov.registradoPor
       };
 
       document.getElementById("ticketFolio").textContent = comprobanteActual.folio;
+      document.getElementById("ticketTipo").textContent = comprobanteActual.tipo;
       document.getElementById("ticketCliente").textContent = comprobanteActual.cliente;
       document.getElementById("ticketTelefono").textContent = comprobanteActual.telefono;
       document.getElementById("ticketFecha").textContent = comprobanteActual.fecha;
+      document.getElementById("ticketAtendidoPor").textContent = comprobanteActual.atendidoPor;
+
+      document.getElementById("ticketLabelMonto").textContent = mov.tipo === "ABONO" ? "ABONO APLICADO:" : "AUMENTO ENTREGADO:";
       document.getElementById("ticketMonto").textContent = `$${comprobanteActual.monto.toFixed(2)} MXN`;
-      document.getElementById("ticketSemana").textContent = comprobanteActual.semana;
-      document.getElementById("ticketMontoTotal").textContent = `$${comprobanteActual.montoTotal.toFixed(2)} MXN`;
-      document.getElementById("ticketTotalPagado").textContent = `$${comprobanteActual.totalPagado.toFixed(2)} MXN`;
-      document.getElementById("ticketSaldoRestante").textContent = `$${comprobanteActual.saldoRestante.toFixed(2)} MXN`;
+      document.getElementById("ticketNotas").textContent = comprobanteActual.notas;
+
+      document.getElementById("ticketMontoTotal").textContent = `$${comprobanteActual.totalPrestado.toFixed(2)} MXN`;
+      document.getElementById("ticketTotalPagado").textContent = `$${comprobanteActual.totalAbonado.toFixed(2)} MXN`;
+      document.getElementById("ticketSaldoRestante").textContent = `$${comprobanteActual.saldoPendiente.toFixed(2)} MXN`;
 
       document.getElementById("modalComprobante").classList.remove("hidden");
     }
 
-    function cerrarModal() {
+    function cerrarModalComprobante() {
       document.getElementById("modalComprobante").classList.add("hidden");
     }
 
-    // Enviar comprobante por WhatsApp
     function enviarWhatsApp() {
       if (!comprobanteActual) return;
       const telClean = comprobanteActual.telefono.replace(/\D/g, '');
+      const emoji = comprobanteActual.tipo === "ABONO" ? "✅" : "📈";
       const mensaje = 
-`*COMPROBANTE DE ABONO* 📄
+`*COMPROBANTE DE MOVIMIENTO* ${emoji}
 ━━━━━━━━━━━━━━━━━━━━━
-*Folio Pago:* ${comprobanteActual.folio}
+*Folio:* ${comprobanteActual.folio}
+*Tipo:* ${comprobanteActual.tipo}
 *Cliente:* ${comprobanteActual.cliente}
+*Atendido por:* ${comprobanteActual.atendidoPor}
 *Fecha:* ${comprobanteActual.fecha}
 
-💵 *Monto Abonado:* $${comprobanteActual.monto.toFixed(2)} MXN
-📅 *Semana:* ${comprobanteActual.semana}
+💵 *Monto del Movimiento:* $${comprobanteActual.monto.toFixed(2)} MXN
+📝 *Notas:* ${comprobanteActual.notas}
 ━━━━━━━━━━━━━━━━━━━━━
-*Monto Original:* $${comprobanteActual.montoTotal.toFixed(2)} MXN
-*Total Pagado:* $${comprobanteActual.totalPagado.toFixed(2)} MXN
-📌 *Saldo Pendiente:* $${comprobanteActual.saldoRestante.toFixed(2)} MXN
+*Total Prestado Acumulado:* $${comprobanteActual.totalPrestado.toFixed(2)} MXN
+*Total Abonado:* $${comprobanteActual.totalAbonado.toFixed(2)} MXN
+📌 *SALDO PENDIENTE ACTUAL:* $${comprobanteActual.saldoPendiente.toFixed(2)} MXN
 ━━━━━━━━━━━━━━━━━━━━━
-_¡Gracias por su pago puntual!_`;
+_¡Gracias por su preferencia!_`;
 
       const url = `https://api.whatsapp.com/send?phone=${telClean}&text=${encodeURIComponent(mensaje)}`;
       window.open(url, '_blank');
     }
 
-    // Renderizar Tablas y Métricas
+    // Renderizar Tablas y Métricas del Encabezado
     function renderizarTodo() {
-      let totalPrestado = 0;
-      let totalSaldoPendiente = 0;
+      let gPrestado = 0;
+      let gAbonado = 0;
+      let gSaldo = 0;
 
-      // Renderizar Select Préstamos
-      const select = document.getElementById("selectPrestamo");
-      select.innerHTML = '<option value="">-- Seleccionar cliente --</option>';
+      const selectGlobal = document.getElementById("selectClienteGlobal");
+      selectGlobal.innerHTML = '<option value="">-- Selecciona un cliente registrado --</option>';
 
-      // Renderizar Tabla Préstamos
-      const tbodyPrestamos = document.getElementById("tablaPrestamos");
-      tbodyPrestamos.innerHTML = "";
+      const tbodyCli = document.getElementById("tablaClientes");
+      tbodyCli.innerHTML = "";
 
-      appState.prestamos.forEach(p => {
-        totalPrestado += p.monto;
-        totalSaldoPendiente += p.saldoPendiente;
+      appState.clientes.forEach(c => {
+        gPrestado += c.totalPrestado;
+        gAbonado += c.totalAbonado;
+        gSaldo += c.saldoPendiente;
 
-        if (p.estado === "activo") {
-          select.innerHTML += `<option value="${p.id}">${p.cliente} - Resta: $${p.saldoPendiente.toFixed(2)}</option>`;
-        }
+        selectGlobal.innerHTML += `<option value="${c.id}" ${c.id === clienteSeleccionadoId ? 'selected' : ''}>${c.nombre} (Saldo: $${c.saldoPendiente.toFixed(2)})</option>`;
 
-        const estadoBadge = p.estado === "activo" 
-          ? `<span class="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-[10px] font-semibold">Activo</span>`
-          : `<span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-semibold">Liquidado</span>`;
+        const ultMov = c.movimientos.length > 0 ? c.movimientos[c.movimientos.length - 1] : null;
+        const textoUltMov = ultMov ? `${ultMov.tipo} ($${ultMov.monto}) - ${ultMov.fecha}` : 'Sin movimientos';
 
-        tbodyPrestamos.innerHTML += `
+        tbodyCli.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
-            <td class="p-3 font-semibold text-indigo-700">${p.id}</td>
-            <td class="p-3">
-              <div class="font-medium text-slate-800">${p.cliente}</div>
-              <div class="text-[10px] text-slate-400">${p.telefono}</div>
-            </td>
-            <td class="p-3 font-medium">$${p.monto.toFixed(2)}</td>
-            <td class="p-3">$${p.montoSemanal.toFixed(2)}</td>
-            <td class="p-3 font-bold ${p.saldoPendiente > 0 ? 'text-amber-600' : 'text-emerald-600'}">$${p.saldoPendiente.toFixed(2)}</td>
-            <td class="p-3">${estadoBadge}</td>
+            <td class="p-3 font-semibold text-indigo-700">${c.id}</td>
+            <td class="p-3 font-medium text-slate-800">${c.nombre}</td>
+            <td class="p-3 text-slate-500">${c.telefono}</td>
+            <td class="p-3 font-medium text-slate-700">$${c.totalPrestado.toFixed(2)}</td>
+            <td class="p-3 font-medium text-emerald-600">$${c.totalAbonado.toFixed(2)}</td>
+            <td class="p-3 font-bold text-amber-600">$${c.saldoPendiente.toFixed(2)}</td>
+            <td class="p-3 text-[11px] text-slate-400">${textoUltMov}</td>
             <td class="p-3 text-center">
-              <button onclick="verHistorialCliente('${p.id}')" title="Ver Pagos" class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg">
-                <i class="fa-solid fa-eye"></i>
+              <button onclick="seleccionarClienteDirecto('${c.id}')" title="Gobernar cliente" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-lg text-[11px]">
+                <i class="fa-solid fa-hand-pointer"></i> Seleccionar
               </button>
             </td>
           </tr>
         `;
       });
 
-      // Actualizar Métricas
-      document.getElementById("statTotalPrestado").textContent = `$${totalPrestado.toLocaleString("es-MX", {minimumFractionDigits:2})}`;
-      document.getElementById("statSaldoPendiente").textContent = `$${totalSaldoPendiente.toLocaleString("es-MX", {minimumFractionDigits:2})}`;
+      // Encabezado Global
+      document.getElementById("hdrTotalClientes").textContent = appState.clientes.length;
+      document.getElementById("hdrTotalPrestado").textContent = `$${gPrestado.toLocaleString("es-MX", {minimumFractionDigits:2})}`;
+      document.getElementById("hdrTotalPagado").textContent = `$${gAbonado.toLocaleString("es-MX", {minimumFractionDigits:2})}`;
+      document.getElementById("hdrSaldoPendiente").textContent = `$${gSaldo.toLocaleString("es-MX", {minimumFractionDigits:2})}`;
 
-      // Renderizar Historial de Pagos Global
-      const tbodyPagos = document.getElementById("tablaPagos");
-      tbodyPagos.innerHTML = "";
+      // Historial de Movimientos
+      const tbodyMov = document.getElementById("tablaMovimientos");
+      tbodyMov.innerHTML = "";
 
-      let todosLosPagos = [];
-      appState.prestamos.forEach(p => {
-        p.pagos.forEach(pago => {
-          todosLosPagos.push({ ...pago, cliente: p.cliente, idPrestamo: p.id, prestamoObj: p });
+      let listaMovs = [];
+      appState.clientes.forEach(c => {
+        c.movimientos.forEach(m => {
+          listaMovs.push({ ...m, clienteNombre: c.nombre, clienteId: c.id, clienteObj: c });
         });
       });
 
-      // Ordenar más reciente primero
-      todosLosPagos.reverse();
+      listaMovs.reverse();
 
-      todosLosPagos.slice(0, 10).forEach(pago => {
-        tbodyPagos.innerHTML += `
+      listaMovs.slice(0, 15).forEach(m => {
+        const badgeColor = m.tipo === "ABONO" 
+          ? "bg-emerald-100 text-emerald-800" 
+          : (m.tipo === "PRÉSTAMO INICIAL" ? "bg-blue-100 text-blue-800" : "bg-amber-100 text-amber-800");
+
+        tbodyMov.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
-            <td class="p-3 text-[11px]">${pago.fecha}</td>
-            <td class="p-3 font-medium text-slate-800">${pago.cliente}</td>
-            <td class="p-3">Semana ${pago.numeroSemana}</td>
-            <td class="p-3 font-bold text-emerald-600">$${pago.montoAbonado.toFixed(2)}</td>
+            <td class="p-3 text-[11px] text-slate-500">${m.fecha}</td>
+            <td class="p-3 font-medium text-slate-800">${m.clienteNombre}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">${m.tipo}</span></td>
+            <td class="p-3 font-bold text-slate-800">$${m.monto.toFixed(2)}</td>
+            <td class="p-3 text-slate-500 text-[11px]">${m.notas}</td>
+            <td class="p-3 text-indigo-700 text-[11px] font-medium">${m.registradoPor || 'Sistema'}</td>
             <td class="p-3 text-center">
-              <button onclick='reimprimirComprobante("${pago.idPrestamo}", "${pago.idPago}")' class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border flex items-center gap-1 mx-auto">
+              <button onclick='reimprimirMovimiento("${m.clienteId}", "${m.id}")' class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] rounded border">
                 <i class="fa-solid fa-receipt"></i> Ticket
               </button>
             </td>
@@ -584,28 +729,20 @@ _¡Gracias por su pago puntual!_`;
       });
     }
 
-    function reimprimirComprobante(idPrestamo, idPago) {
-      const p = appState.prestamos.find(item => item.id === idPrestamo);
-      if (!p) return;
-      const pago = p.pagos.find(item => item.idPago === idPago);
-      if (!pago) return;
-      mostrarComprobante(p, pago);
+    function reimprimirMovimiento(cid, mid) {
+      const cli = appState.clientes.find(c => c.id === cid);
+      if (!cli) return;
+      const mov = cli.movimientos.find(m => m.id === mid);
+      if (!mov) return;
+      mostrarTicket(cli, mov);
     }
 
-    function verHistorialCliente(idPrestamo) {
-      const p = appState.prestamos.find(item => item.id === idPrestamo);
-      if (!p) return;
-      alert(`Historial de ${p.cliente}:\nTotal de Abonos: ${p.pagos.length}\nSaldo Restante: $${p.saldoPendiente} MXN`);
-    }
-
-    // ----------------------------------------------------
-    // EXPORTACIÓN E IMPORTACIÓN JSON & EXCEL
-    // ----------------------------------------------------
+    // Backup & Exportación
     function exportDataJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `prestamos_respaldo_${new Date().toISOString().split('T')[0]}.json`);
+      downloadAnchor.setAttribute("download", `prestamos_flexible_respaldo_${new Date().toISOString().split('T')[0]}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -615,13 +752,12 @@ _¡Gracias por su pago puntual!_`;
       const fileReader = new FileReader();
       fileReader.onload = function(e) {
         try {
-          const importedData = JSON.parse(e.target.result);
-          if (importedData.prestamos) {
-            appState = importedData;
+          const imported = JSON.parse(e.target.result);
+          if (imported.clientes) {
+            appState = imported;
             guardarDatos();
-            alert("¡Datos cargados y restaurados correctamente desde el JSON!");
-          } else {
-            alert("El archivo JSON no coincide con el esquema requerido.");
+            renderizarUsuarios();
+            alert("¡Datos flexibles restaurados correctamente!");
           }
         } catch (err) {
           alert("Error al leer el archivo JSON.");
@@ -630,45 +766,41 @@ _¡Gracias por su pago puntual!_`;
       fileReader.readAsText(event.target.files[0]);
     }
 
-    // Exportar a Excel profesional usando SheetJS
     function exportarExcel() {
       const wb = XLSX.utils.book_new();
 
-      // Pestaña 1: Resumen de Cartera
-      const carteraData = appState.prestamos.map(p => ({
-        "Folio Préstamo": p.id,
-        "Cliente": p.cliente,
-        "Teléfono": p.telefono,
-        "Fecha Inicio": p.fechaInicio,
-        "Monto Total ($)": p.monto,
-        "Plazo (Semanas)": p.plazoSemanas,
-        "Cuota Semanal ($)": p.montoSemanal,
-        "Saldo Pendiente ($)": p.saldoPendiente,
-        "Abonos Realizados": p.pagos.length,
-        "Estado": p.estado.toUpperCase()
+      const carteraData = appState.clientes.map(c => ({
+        "ID Cliente": c.id,
+        "Nombre": c.nombre,
+        "Teléfono": c.telefono,
+        "Total Prestado Acumulado ($)": c.totalPrestado,
+        "Total Abonado ($)": c.totalAbonado,
+        "Saldo Pendiente Actual ($)": c.saldoPendiente,
+        "Fecha Registro": c.fechaRegistro,
+        "Creado Por": c.creadoPor
       }));
-      const wsCartera = XLSX.utils.json_to_sheet(carteraData);
-      XLSX.utils.book_append_sheet(wb, wsCartera, "Cartera de Préstamos");
+      const ws1 = XLSX.utils.json_to_sheet(carteraData);
+      XLSX.utils.book_append_sheet(wb, ws1, "Cartera de Clientes");
 
-      // Pestaña 2: Historial Detallado de Abonos
-      let pagosData = [];
-      appState.prestamos.forEach(p => {
-        p.pagos.forEach(pago => {
-          pagosData.push({
-            "Folio Pago": pago.idPago,
-            "Folio Préstamo": p.id,
-            "Cliente": p.cliente,
-            "Fecha y Hora": pago.fecha,
-            "Número de Semana": pago.numeroSemana,
-            "Monto Abonado ($)": pago.montoAbonado
+      let movsData = [];
+      appState.clientes.forEach(c => {
+        c.movimientos.forEach(m => {
+          movsData.push({
+            "Folio Movimiento": m.id,
+            "ID Cliente": c.id,
+            "Cliente": c.nombre,
+            "Fecha": m.fecha,
+            "Tipo": m.tipo,
+            "Monto ($)": m.monto,
+            "Notas": m.notas,
+            "Registrado Por": m.registradoPor
           });
         });
       });
-      const wsPagos = XLSX.utils.json_to_sheet(pagosData);
-      XLSX.utils.book_append_sheet(wb, wsPagos, "Historial de Abonos");
+      const ws2 = XLSX.utils.json_to_sheet(movsData);
+      XLSX.utils.book_append_sheet(wb, ws2, "Movimientos Globales");
 
-      // Guardar archivo
-      XLSX.writeFile(wb, `Reporte_Prestamos_${new Date().toISOString().split('T')[0]}.xlsx`);
+      XLSX.writeFile(wb, `Reporte_Clientes_Flexible_${new Date().toISOString().split('T')[0]}.xlsx`);
     }
   </script>
 </body>
