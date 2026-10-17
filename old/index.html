@@ -1,1 +1,915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Control de Préstamos e Incrementos</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- SheetJS para exportar a Excel cliente -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #ticket-print, #ticket-print * { visibility: visible; }
+      #ticket-print { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col">
 
+  <!-- Header Global con Banner Rosa (Pink/Rose Palette) -->
+  <header class="bg-rose-600 text-white shadow-xl sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4 border-b border-rose-500/60">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-amber-300 text-rose-950 rounded-xl shadow-inner">
+          <i class="fa-solid fa-vault text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight tracking-wide">CrediSimple - Control Flexible</h1>
+          <p class="text-xs text-rose-100">Préstamos Abiertos • Sin Plazo Fijo • Registro de Incrementos</p>
+        </div>
+      </div>
+
+      <!-- Selector de Usuario Activo -->
+      <div class="flex items-center gap-2 bg-rose-800/80 px-3 py-1.5 rounded-xl border border-rose-400/40">
+        <i class="fa-solid fa-user-gear text-amber-300 text-sm"></i>
+        <span class="text-xs text-rose-100">Usuario:</span>
+        <select id="selectUsuarioActivo" onchange="cambiarUsuarioActivo()" class="bg-rose-900 text-white text-xs font-semibold py-1 px-2 rounded border border-rose-500 focus:outline-none cursor-pointer">
+        </select>
+        <button onclick="nuevoUsuarioModal()" title="Agregar nuevo cobrador/usuario" class="text-xs bg-rose-700 hover:bg-rose-500 text-white px-2 py-1 rounded transition">
+          <i class="fa-solid fa-user-plus"></i>
+        </button>
+      </div>
+
+      <!-- Acciones de Backup -->
+      <div class="flex items-center gap-2">
+        <button onclick="exportDataJSON()" class="bg-rose-700 hover:bg-rose-500 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+          <i class="fa-solid fa-download"></i> Respaldar
+        </button>
+        <label class="bg-rose-700 hover:bg-rose-500 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 cursor-pointer transition shadow-sm">
+          <i class="fa-solid fa-upload"></i> Cargar
+          <input type="file" id="importJsonInput" accept=".json" class="hidden" onchange="importDataJSON(event)">
+        </label>
+        <button onclick="clearData()" class="bg-slate-800 hover:bg-slate-700 text-xs text-white py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+          <i class="fa-solid fa-rotate-left"></i> Reiniciar
+        </button>
+      </div>
+    </div>
+
+    <!-- Panel de Métricas Globales en Encabezado (Rosa) -->
+    <div class="bg-rose-700/90 py-3 border-t border-rose-500/40">
+      <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+        <div class="bg-rose-950/40 p-2.5 rounded-xl border border-rose-400/30">
+          <span class="text-[11px] font-medium text-rose-100 uppercase tracking-wider block">Clientes Registrados</span>
+          <span id="hdrTotalClientes" class="text-lg font-bold text-white">0</span>
+        </div>
+        <div class="bg-rose-950/40 p-2.5 rounded-xl border border-rose-400/30">
+          <span class="text-[11px] font-medium text-rose-100 uppercase tracking-wider block">Total Prestado Global</span>
+          <span id="hdrTotalPrestado" class="text-lg font-bold text-amber-300">$0.00</span>
+        </div>
+        <div class="bg-rose-950/40 p-2.5 rounded-xl border border-rose-400/30">
+          <span class="text-[11px] font-medium text-rose-100 uppercase tracking-wider block">Total Pagado / Cobrado</span>
+          <span id="hdrTotalPagado" class="text-lg font-bold text-emerald-300">$0.00</span>
+        </div>
+        <div class="bg-rose-950/40 p-2.5 rounded-xl border border-rose-400/30">
+          <span class="text-[11px] font-medium text-rose-100 uppercase tracking-wider block">Saldo Pendiente Activo</span>
+          <span id="hdrSaldoPendiente" class="text-lg font-bold text-amber-200">$0.00</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+
+    <!-- Leyenda de Semáforo de Morosidad -->
+    <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <span class="font-bold text-slate-700 flex items-center gap-1.5">
+        <i class="fa-solid fa-traffic-light text-rose-600"></i> Estado de Pago (Semáforo de Morosidad):
+      </span>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-semibold rounded-full border border-emerald-300 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Verde: Al día / 0 a 2 Semanas de Retraso
+        </span>
+        <span class="px-2.5 py-1 bg-amber-100 text-amber-800 font-semibold rounded-full border border-amber-300 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span> Amarillo: 3 Semanas sin pagar
+        </span>
+        <span class="px-2.5 py-1 bg-rose-100 text-rose-800 font-semibold rounded-full border border-rose-300 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-rose-500"></span> Rojo: 4+ Semanas sin pagar
+        </span>
+        <span class="px-2.5 py-1 bg-slate-100 text-slate-600 font-semibold rounded-full border border-slate-300">
+          Gris: Liquidado
+        </span>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DE SELECCIÓN Y GESTIÓN RÁPIDA DE CLIENTE -->
+    <section class="bg-white p-5 rounded-2xl shadow-md border border-slate-200 space-y-4">
+      <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
+        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-address-book text-rose-600"></i> Selector de Cliente y Estado de Cuenta
+        </h2>
+        <div class="flex items-center gap-2">
+          <button onclick="exportarExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-3 rounded-xl flex items-center gap-1.5 transition shadow-sm">
+            <i class="fa-solid fa-file-excel"></i> Exportar a Excel
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        <div class="md:col-span-8">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Seleccionar Cliente para ver Estado de Cuenta o Realizar Operación:</label>
+          <div class="flex gap-2">
+            <select id="selectClienteGlobal" onchange="cargarEstadoClienteSeleccionado()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-rose-500 outline-none">
+              <option value="">-- Selecciona un cliente registrado --</option>
+            </select>
+          </div>
+        </div>
+        <div class="md:col-span-4 flex justify-end">
+          <button onclick="abrirModalNuevoCliente()" class="w-full md:w-auto bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
+            <i class="fa-solid fa-user-plus"></i> Registrar Nuevo Cliente
+          </button>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Ficha de Cliente Seleccionado -->
+      <div id="fichaCliente" class="hidden bg-slate-50 p-4 rounded-xl border border-rose-100 grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Cliente</span>
+          <span id="fcNombre" class="text-base font-bold text-rose-950 block"></span>
+          <span id="fcTel" class="text-xs text-slate-500"></span>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Estatus de Pago</span>
+          <div id="fcBadgeEstatus"></div>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Total Prestado</span>
+          <span id="fcPrestado" class="text-base font-bold text-slate-800"></span>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Total Abonado</span>
+          <span id="fcAbonado" class="text-base font-bold text-emerald-600"></span>
+        </div>
+        <div>
+          <span class="text-[11px] text-slate-400 uppercase font-bold block">Saldo Pendiente</span>
+          <span id="fcSaldo" class="text-lg font-black text-amber-600"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANELES DE OPERACIONES: AUMENTAR Y ABONAR -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Operación 1: Registrar Abono -->
+      <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-200 flex flex-col justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2 border-b pb-2">
+            <i class="fa-solid fa-hand-holding-hand text-emerald-600"></i> Registrar Abono (Pago)
+          </h2>
+          <form id="formAbono" onsubmit="registrarAbono(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Cliente Receptor *</label>
+              <input type="text" id="abonoClienteNombre" readonly placeholder="Seleccione un cliente arriba" class="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Monto Abonado ($ MXN) *</label>
+              <input type="number" id="montoAbono" step="any" min="0.01" required placeholder="Ej. 500" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Fecha del Pago *</label>
+              <input type="date" id="fechaAbono" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Notas / Observación (Opcional)</label>
+              <input type="text" id="notasAbono" placeholder="Ej. Pago semanal parcial" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+            <button type="submit" id="btnAbono" disabled class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
+              <i class="fa-solid fa-circle-check"></i> Registrar Abono y Ticket
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Operación 2: Aumentar Préstamo -->
+      <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-200 flex flex-col justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2 border-b pb-2">
+            <i class="fa-solid fa-money-bill-trend-up text-amber-600"></i> Aumentar Préstamo (Nuevo Crédito)
+          </h2>
+          <form id="formAumento" onsubmit="registrarAumento(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Cliente a Ampliar Crédito *</label>
+              <input type="text" id="aumentoClienteNombre" readonly placeholder="Seleccione un cliente arriba" class="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Monto Adicional a Entregar ($ MXN) *</label>
+              <input type="number" id="montoAumento" step="any" min="1" required placeholder="Ej. 2000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Motivo / Concepto del Aumento (Opcional)</label>
+              <input type="text" id="motivoAumento" placeholder="Ej. Ampliación comercial" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <button type="submit" id="btnAumento" disabled class="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-slate-300 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm">
+              <i class="fa-solid fa-plus-circle"></i> Aumentar Saldo del Cliente
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- HISTORIAL Y CARTERA GLOBAL DE CLIENTES CON INDICADOR DE MOROSIDAD -->
+    <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+      <div class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
+        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-users text-rose-600"></i> Resumen de Cartera e Indicadores de Pago
+        </h2>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-200">
+            <tr>
+              <th class="p-3">ID Cliente</th>
+              <th class="p-3">Cliente</th>
+              <th class="p-3">Estatus de Pago</th>
+              <th class="p-3">Total Prestado</th>
+              <th class="p-3">Total Abonado</th>
+              <th class="p-3">Saldo Actual</th>
+              <th class="p-3">Último Pago</th>
+              <th class="p-3 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaClientes" class="divide-y divide-slate-200">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MOVIMIENTOS RECIENTES -->
+    <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+      <div class="p-4 bg-slate-100 border-b border-slate-200">
+        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-rose-600"></i> Historial Global de Movimientos (Abonos y Aumentos)
+        </h2>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-200">
+            <tr>
+              <th class="p-3">Fecha</th>
+              <th class="p-3">Cliente</th>
+              <th class="p-3">Tipo de Operación</th>
+              <th class="p-3">Monto</th>
+              <th class="p-3">Notas</th>
+              <th class="p-3">Registrado por</th>
+              <th class="p-3 text-center">Ticket</th>
+            </tr>
+          </thead>
+          <tbody id="tablaMovimientos" class="divide-y divide-slate-200">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL NUEVO CLIENTE -->
+  <div id="modalNuevoCliente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-rose-600"></i> Registrar Nuevo Cliente
+        </h3>
+        <button onclick="cerrarModalNuevoCliente()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="guardarNuevoCliente(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Nombre Completo del Cliente *</label>
+          <input type="text" id="modalNombreCliente" required placeholder="Ej. Maria Rodríguez" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Teléfono / WhatsApp *</label>
+          <input type="tel" id="modalTelefonoCliente" required placeholder="Ej. 5512345678" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Monto del Préstamo Inicial ($ MXN) *</label>
+          <input type="number" id="modalMontoInicial" min="1" step="any" required placeholder="Ej. 5000" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 outline-none">
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="cerrarModalNuevoCliente()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg">Guardar y Abrir Préstamo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE TICKET / COMPROBANTE -->
+  <div id="modalComprobante" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-receipt text-rose-600"></i> Comprobante de Operación
+        </h3>
+        <button onclick="cerrarModalComprobante()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <!-- Ticket Imprimible / Vista Previa -->
+      <div id="ticket-print" class="bg-slate-50 p-4 rounded-xl border border-slate-200 font-mono text-xs space-y-2">
+        <div class="text-center font-bold text-slate-800 uppercase tracking-wider border-b pb-2">
+          *** COMPROBANTE DE MOVIMIENTO ***<br>
+          <span id="ticketFecha" class="text-[10px] font-normal text-slate-500"></span>
+        </div>
+        <div class="space-y-1 py-1">
+          <div class="flex justify-between"><span>Folio:</span><span id="ticketFolio" class="font-bold"></span></div>
+          <div class="flex justify-between"><span>Tipo:</span><span id="ticketTipo" class="font-bold"></span></div>
+          <div class="flex justify-between"><span>Cliente:</span><span id="ticketCliente" class="font-bold"></span></div>
+          <div class="flex justify-between"><span>Teléfono:</span><span id="ticketTelefono"></span></div>
+          <div class="flex justify-between border-t pt-1"><span>Atendido por:</span><span id="ticketAtendidoPor" class="font-bold"></span></div>
+          <hr class="my-1 border-dashed">
+          <div class="flex justify-between font-bold"><span id="ticketLabelMonto">MONTO:</span><span id="ticketMonto"></span></div>
+          <div class="flex justify-between text-[11px] text-slate-600"><span>Notas:</span><span id="ticketNotas"></span></div>
+          <hr class="my-1 border-dashed">
+          <div class="flex justify-between"><span>Total Prestado:</span><span id="ticketMontoTotal"></span></div>
+          <div class="flex justify-between"><span>Total Abonado:</span><span id="ticketTotalPagado"></span></div>
+          <div class="flex justify-between text-amber-700 font-bold"><span>SALDO PENDIENTE:</span><span id="ticketSaldoRestante"></span></div>
+        </div>
+        <div class="text-center text-[10px] text-slate-500 border-t pt-2">
+          Control Abierto de Préstamos • ¡Gracias!
+        </div>
+      </div>
+
+      <!-- Acciones del Comprobante -->
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <button onclick="enviarWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition">
+          <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
+        </button>
+        <button onclick="window.print()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-print"></i> Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lógica JavaScript Pure Vanilla + Semáforo de Morosidad por Semanas -->
+  <script>
+    // Fecha actual para inicialización de formularios
+    const hoyStr = new Date().toISOString().split('T')[0];
+
+    // Estado inicial de la base de datos local
+    let appState = {
+      meta: { version: "3.0.0", fechaActualizacion: new Date().toISOString() },
+      usuarioActivo: "Administrador",
+      usuarios: ["Administrador", "Luis López", "Cobrador 1"],
+      clientes: [
+        {
+          id: "CLI-1001",
+          nombre: "María Rodríguez",
+          telefono: "5512345678",
+          totalPrestado: 12000,
+          totalAbonado: 4101,
+          saldoPendiente: 7899,
+          fechaRegistro: "2026-09-01",
+          creadoPor: "Administrador",
+          movimientos: [
+            { id: "MOV-001", fecha: "2026-09-01", tipo: "PRÉSTAMO INICIAL", monto: 12000, notas: "Apertura de crédito", registradoPor: "Administrador" },
+            { id: "MOV-002", fecha: "2026-09-08", tipo: "ABONO", monto: 1000, notas: "Abono 1", registradoPor: "Luis López" },
+            { id: "MOV-003", fecha: "2026-09-15", tipo: "ABONO", monto: 1000, notas: "Abono 2", registradoPor: "Luis López" },
+            { id: "MOV-004", fecha: "2026-09-22", tipo: "ABONO", monto: 1000, notas: "Abono 3", registradoPor: "Cobrador 1" },
+            { id: "MOV-005", fecha: "2026-09-29", tipo: "ABONO", monto: 1101, notas: "Abono 4", registradoPor: "Administrador" }
+          ]
+        }
+      ]
+    };
+
+    let clienteSeleccionadoId = null;
+    let comprobanteActual = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("fechaAbono").value = hoyStr;
+      cargarDatos();
+      renderizarUsuarios();
+      renderizarTodo();
+    });
+
+    function guardarDatos() {
+      appState.meta.fechaActualizacion = new Date().toISOString();
+      localStorage.setItem("sistema_prestamos_rosa_db", JSON.stringify(appState));
+      renderizarTodo();
+    }
+
+    function cargarDatos() {
+      const data = localStorage.getItem("sistema_prestamos_rosa_db");
+      if (data) {
+        try {
+          const parsed = JSON.parse(data);
+          appState = { ...appState, ...parsed };
+        } catch (e) {
+          console.error("Error al cargar JSON local", e);
+        }
+      }
+    }
+
+    function clearData() {
+      if (confirm("¿Estás seguro de reiniciar todos los datos al estado inicial?")) {
+        localStorage.removeItem("sistema_prestamos_rosa_db");
+        location.reload();
+      }
+    }
+
+    function renderizarUsuarios() {
+      const select = document.getElementById("selectUsuarioActivo");
+      select.innerHTML = "";
+      appState.usuarios.forEach(u => {
+        const isSelected = u === appState.usuarioActivo ? "selected" : "";
+        select.innerHTML += `<option value="${u}" ${isSelected}>${u}</option>`;
+      });
+    }
+
+    function cambiarUsuarioActivo() {
+      appState.usuarioActivo = document.getElementById("selectUsuarioActivo").value;
+      guardarDatos();
+    }
+
+    function nuevoUsuarioModal() {
+      const nuevoNombre = prompt("Nombre del nuevo usuario / cobrador:");
+      if (nuevoNombre && nuevoNombre.trim() !== "") {
+        const nombreLimpio = nuevoNombre.trim();
+        if (!appState.usuarios.includes(nombreLimpio)) {
+          appState.usuarios.push(nombreLimpio);
+          appState.usuarioActivo = nombreLimpio;
+          renderizarUsuarios();
+          guardarDatos();
+        }
+      }
+    }
+
+    // LÓGICA DEL SEMÁFORO DE MOROSIDAD
+    function obtenerEstatusMorosidad(cliente) {
+      if (cliente.saldoPendiente <= 0) {
+        return {
+          clase: "bg-slate-100 text-slate-600 border-slate-300",
+          dot: "bg-slate-400",
+          texto: "Liquidado",
+          semanas: 0
+        };
+      }
+
+      // Obtener el último abono realizado
+      const abonos = cliente.movimientos.filter(m => m.tipo === "ABONO");
+      let fechaReferencia = cliente.fechaRegistro;
+
+      if (abonos.length > 0) {
+        // Ordenar abonos por fecha descendente
+        const abonosOrdenados = abonos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+        fechaReferencia = abonosOrdenados[0].fecha;
+      }
+
+      const fUltimo = new Date(fechaReferencia);
+      const fActual = new Date();
+      const diffMs = fActual - fUltimo;
+      const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const semanasSinPagar = Math.floor(diffDias / 7);
+
+      if (semanasSinPagar >= 4) {
+        return {
+          clase: "bg-rose-100 text-rose-800 border-rose-300",
+          dot: "bg-rose-500",
+          texto: `${semanasSinPagar} semanas sin pagar (Rojo)`,
+          semanas: semanasSinPagar
+        };
+      } else if (semanasSinPagar === 3) {
+        return {
+          clase: "bg-amber-100 text-amber-800 border-amber-300",
+          dot: "bg-amber-500",
+          texto: "3 semanas sin pagar (Amarillo)",
+          semanas: 3
+        };
+      } else {
+        // 0, 1 o 2 semanas de retraso (Verde)
+        const txtSem = semanasSinPagar === 0 ? "Al día" : `${semanasSinPagar} sem. retraso`;
+        return {
+          clase: "bg-emerald-100 text-emerald-800 border-emerald-300",
+          dot: "bg-emerald-500",
+          texto: `${txtSem} (Verde)`,
+          semanas: semanasSinPagar
+        };
+      }
+    }
+
+    // Modal Nuevo Cliente
+    function abrirModalNuevoCliente() {
+      document.getElementById("modalNuevoCliente").classList.remove("hidden");
+    }
+
+    function cerrarModalNuevoCliente() {
+      document.getElementById("modalNuevoCliente").classList.add("hidden");
+    }
+
+    function guardarNuevoCliente(e) {
+      e.preventDefault();
+      const nombre = document.getElementById("modalNombreCliente").value.trim();
+      const tel = document.getElementById("modalTelefonoCliente").value.trim();
+      const montoInicial = parseFloat(document.getElementById("modalMontoInicial").value);
+
+      const newId = `CLI-${Math.floor(1000 + Math.random() * 9000)}`;
+      const fechaHoy = new Date().toISOString().split('T')[0];
+
+      const nuevoCliente = {
+        id: newId,
+        nombre: nombre,
+        telefono: tel,
+        totalPrestado: montoInicial,
+        totalAbonado: 0,
+        saldoPendiente: montoInicial,
+        fechaRegistro: fechaHoy,
+        creadoPor: appState.usuarioActivo,
+        movimientos: [
+          {
+            id: `MOV-${Math.floor(100 + Math.random() * 900)}`,
+            fecha: fechaHoy,
+            tipo: "PRÉSTAMO INICIAL",
+            monto: montoInicial,
+            notas: "Apertura de préstamo",
+            registradoPor: appState.usuarioActivo
+          }
+        ]
+      };
+
+      appState.clientes.unshift(nuevoCliente);
+      clienteSeleccionadoId = newId;
+      guardarDatos();
+      cerrarModalNuevoCliente();
+      document.getElementById("modalNombreCliente").value = "";
+      document.getElementById("modalTelefonoCliente").value = "";
+      document.getElementById("modalMontoInicial").value = "";
+    }
+
+    // Cargar Selección de Cliente
+    function cargarEstadoClienteSeleccionado() {
+      clienteSeleccionadoId = document.getElementById("selectClienteGlobal").value;
+      actualizarFichaCliente();
+    }
+
+    function seleccionarClienteDirecto(id) {
+      clienteSeleccionadoId = id;
+      document.getElementById("selectClienteGlobal").value = id;
+      actualizarFichaCliente();
+      window.scrollTo({ top: 120, behavior: 'smooth' });
+    }
+
+    function actualizarFichaCliente() {
+      const ficha = document.getElementById("fichaCliente");
+      const btnAbono = document.getElementById("btnAbono");
+      const btnAumento = document.getElementById("btnAumento");
+
+      if (!clienteSeleccionadoId) {
+        ficha.classList.add("hidden");
+        document.getElementById("abonoClienteNombre").value = "";
+        document.getElementById("aumentoClienteNombre").value = "";
+        btnAbono.disabled = true;
+        btnAumento.disabled = true;
+        return;
+      }
+
+      const cli = appState.clientes.find(c => c.id === clienteSeleccionadoId);
+      if (cli) {
+        const estatus = obtenerEstatusMorosidad(cli);
+
+        document.getElementById("fcNombre").textContent = cli.nombre;
+        document.getElementById("fcTel").textContent = cli.telefono;
+
+        document.getElementById("fcBadgeEstatus").innerHTML = `
+          <span class="px-2.5 py-1 rounded-full text-xs font-bold border ${estatus.clase} inline-flex items-center gap-1.5 shadow-sm">
+            <span class="w-2 h-2 rounded-full ${estatus.dot}"></span> ${estatus.texto}
+          </span>
+        `;
+
+        document.getElementById("fcPrestado").textContent = `$${cli.totalPrestado.toLocaleString("es-MX", {minimumFractionDigits:2})} MXN`;
+        document.getElementById("fcAbonado").textContent = `$${cli.totalAbonado.toLocaleString("es-MX", {minimumFractionDigits:2})} MXN`;
+        document.getElementById("fcSaldo").textContent = `$${cli.saldoPendiente.toLocaleString("es-MX", {minimumFractionDigits:2})} MXN`;
+        ficha.classList.remove("hidden");
+
+        document.getElementById("abonoClienteNombre").value = `${cli.nombre} (Saldo: $${cli.saldoPendiente.toFixed(2)})`;
+        document.getElementById("aumentoClienteNombre").value = `${cli.nombre} (Saldo actual: $${cli.saldoPendiente.toFixed(2)})`;
+
+        btnAbono.disabled = false;
+        btnAumento.disabled = false;
+      }
+    }
+
+    // Registrar Abono
+    function registrarAbono(e) {
+      e.preventDefault();
+      if (!clienteSeleccionadoId) return;
+
+      const cli = appState.clientes.find(c => c.id === clienteSeleccionadoId);
+      if (!cli) return;
+
+      const monto = parseFloat(document.getElementById("montoAbono").value);
+      const fechaP = document.getElementById("fechaAbono").value || hoyStr;
+      const notas = document.getElementById("notasAbono").value.trim() || "Abono a cuenta";
+
+      if (monto > cli.saldoPendiente + 0.01) {
+        alert("El monto ingresado excede el saldo pendiente del cliente.");
+        return;
+      }
+
+      const movId = `MOV-${Math.floor(100 + Math.random() * 900)}`;
+
+      const mov = {
+        id: movId,
+        fecha: fechaP,
+        tipo: "ABONO",
+        monto: monto,
+        notas: notas,
+        registradoPor: appState.usuarioActivo
+      };
+
+      cli.totalAbonado += monto;
+      cli.saldoPendiente = Math.max(0, cli.saldoPendiente - monto);
+      cli.movimientos.push(mov);
+
+      guardarDatos();
+      document.getElementById("formAbono").reset();
+      document.getElementById("fechaAbono").value = hoyStr;
+      actualizarFichaCliente();
+
+      mostrarTicket(cli, mov);
+    }
+
+    // Registrar Aumento de Préstamo
+    function registrarAumento(e) {
+      e.preventDefault();
+      if (!clienteSeleccionadoId) return;
+
+      const cli = appState.clientes.find(c => c.id === clienteSeleccionadoId);
+      if (!cli) return;
+
+      const monto = parseFloat(document.getElementById("montoAumento").value);
+      const motivo = document.getElementById("motivoAumento").value.trim() || "Incremento de préstamo";
+
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      const movId = `MOV-${Math.floor(100 + Math.random() * 900)}`;
+
+      const mov = {
+        id: movId,
+        fecha: fechaHoy,
+        tipo: "AUMENTO DE PRÉSTAMO",
+        monto: monto,
+        notas: motivo,
+        registradoPor: appState.usuarioActivo
+      };
+
+      cli.totalPrestado += monto;
+      cli.saldoPendiente += monto;
+      cli.movimientos.push(mov);
+
+      guardarDatos();
+      document.getElementById("formAumento").reset();
+      actualizarFichaCliente();
+
+      mostrarTicket(cli, mov);
+    }
+
+    // Ticket / Comprobante
+    function mostrarTicket(cliente, mov) {
+      comprobanteActual = {
+        folio: mov.id,
+        tipo: mov.tipo,
+        cliente: cliente.nombre,
+        telefono: cliente.telefono,
+        fecha: mov.fecha,
+        monto: mov.monto,
+        notas: mov.notas,
+        totalPrestado: cliente.totalPrestado,
+        totalAbonado: cliente.totalAbonado,
+        saldoPendiente: cliente.saldoPendiente,
+        atendidoPor: mov.registradoPor
+      };
+
+      document.getElementById("ticketFolio").textContent = comprobanteActual.folio;
+      document.getElementById("ticketTipo").textContent = comprobanteActual.tipo;
+      document.getElementById("ticketCliente").textContent = comprobanteActual.cliente;
+      document.getElementById("ticketTelefono").textContent = comprobanteActual.telefono;
+      document.getElementById("ticketFecha").textContent = comprobanteActual.fecha;
+      document.getElementById("ticketAtendidoPor").textContent = comprobanteActual.atendidoPor;
+
+      document.getElementById("ticketLabelMonto").textContent = mov.tipo === "ABONO" ? "ABONO APLICADO:" : "AUMENTO ENTREGADO:";
+      document.getElementById("ticketMonto").textContent = `$${comprobanteActual.monto.toFixed(2)} MXN`;
+      document.getElementById("ticketNotas").textContent = comprobanteActual.notas;
+
+      document.getElementById("ticketMontoTotal").textContent = `$${comprobanteActual.totalPrestado.toFixed(2)} MXN`;
+      document.getElementById("ticketTotalPagado").textContent = `$${comprobanteActual.totalAbonado.toFixed(2)} MXN`;
+      document.getElementById("ticketSaldoRestante").textContent = `$${comprobanteActual.saldoPendiente.toFixed(2)} MXN`;
+
+      document.getElementById("modalComprobante").classList.remove("hidden");
+    }
+
+    function cerrarModalComprobante() {
+      document.getElementById("modalComprobante").classList.add("hidden");
+    }
+
+    function enviarWhatsApp() {
+      if (!comprobanteActual) return;
+      const telClean = comprobanteActual.telefono.replace(/\D/g, '');
+      const emoji = comprobanteActual.tipo === "ABONO" ? "✅" : "📈";
+      const mensaje = 
+`*COMPROBANTE DE MOVIMIENTO* ${emoji}
+━━━━━━━━━━━━━━━━━━━━━
+*Folio:* ${comprobanteActual.folio}
+*Tipo:* ${comprobanteActual.tipo}
+*Cliente:* ${comprobanteActual.cliente}
+*Atendido por:* ${comprobanteActual.atendidoPor}
+*Fecha:* ${comprobanteActual.fecha}
+
+💵 *Monto del Movimiento:* $${comprobanteActual.monto.toFixed(2)} MXN
+📝 *Notas:* ${comprobanteActual.notas}
+━━━━━━━━━━━━━━━━━━━━━
+*Total Prestado Acumulado:* $${comprobanteActual.totalPrestado.toFixed(2)} MXN
+*Total Abonado:* $${comprobanteActual.totalAbonado.toFixed(2)} MXN
+📌 *SALDO PENDIENTE ACTUAL:* $${comprobanteActual.saldoPendiente.toFixed(2)} MXN
+━━━━━━━━━━━━━━━━━━━━━
+_¡Gracias por su preferencia!_`;
+
+      const url = `https://api.whatsapp.com/send?phone=${telClean}&text=${encodeURIComponent(mensaje)}`;
+      window.open(url, '_blank');
+    }
+
+    // Renderizar Tablas y Métricas
+    function renderizarTodo() {
+      let gPrestado = 0;
+      let gAbonado = 0;
+      let gSaldo = 0;
+
+      const selectGlobal = document.getElementById("selectClienteGlobal");
+      selectGlobal.innerHTML = '<option value="">-- Selecciona un cliente registrado --</option>';
+
+      const tbodyCli = document.getElementById("tablaClientes");
+      tbodyCli.innerHTML = "";
+
+      appState.clientes.forEach(c => {
+        gPrestado += c.totalPrestado;
+        gAbonado += c.totalAbonado;
+        gSaldo += c.saldoPendiente;
+
+        const estatus = obtenerEstatusMorosidad(c);
+
+        selectGlobal.innerHTML += `<option value="${c.id}" ${c.id === clienteSeleccionadoId ? 'selected' : ''}>${c.nombre} (Saldo: $${c.saldoPendiente.toFixed(2)})</option>`;
+
+        const abonos = c.movimientos.filter(m => m.tipo === "ABONO");
+        const ultAbono = abonos.length > 0 ? abonos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha))[0] : null;
+        const txtUltPago = ultAbono ? `$${ultAbono.monto.toFixed(2)} el ${ultAbono.fecha}` : 'Sin abonos';
+
+        tbodyCli.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 font-semibold text-rose-700">${c.id}</td>
+            <td class="p-3 font-medium text-slate-800">${c.nombre}<div class="text-[10px] text-slate-400">${c.telefono}</div></td>
+            <td class="p-3">
+              <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${estatus.clase} inline-flex items-center gap-1 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full ${estatus.dot}"></span> ${estatus.texto}
+              </span>
+            </td>
+            <td class="p-3 font-medium text-slate-700">$${c.totalPrestado.toFixed(2)}</td>
+            <td class="p-3 font-medium text-emerald-600">$${c.totalAbonado.toFixed(2)}</td>
+            <td class="p-3 font-bold text-amber-600">$${c.saldoPendiente.toFixed(2)}</td>
+            <td class="p-3 text-[11px] text-slate-500">${txtUltPago}</td>
+            <td class="p-3 text-center">
+              <button onclick="seleccionarClienteDirecto('${c.id}')" title="Gobernar cliente" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold rounded-lg text-[11px]">
+                <i class="fa-solid fa-hand-pointer"></i> Seleccionar
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      // Encabezado Global
+      document.getElementById("hdrTotalClientes").textContent = appState.clientes.length;
+      document.getElementById("hdrTotalPrestado").textContent = `$${gPrestado.toLocaleString("es-MX", {minimumFractionDigits:2})}`;
+      document.getElementById("hdrTotalPagado").textContent = `$${gAbonado.toLocaleString("es-MX", {minimumFractionDigits:2})}`;
+      document.getElementById("hdrSaldoPendiente").textContent = `$${gSaldo.toLocaleString("es-MX", {minimumFractionDigits:2})}`;
+
+      // Historial de Movimientos
+      const tbodyMov = document.getElementById("tablaMovimientos");
+      tbodyMov.innerHTML = "";
+
+      let listaMovs = [];
+      appState.clientes.forEach(c => {
+        c.movimientos.forEach(m => {
+          listaMovs.push({ ...m, clienteNombre: c.nombre, clienteId: c.id });
+        });
+      });
+
+      listaMovs.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+      listaMovs.slice(0, 15).forEach(m => {
+        const badgeColor = m.tipo === "ABONO" 
+          ? "bg-emerald-100 text-emerald-800" 
+          : (m.tipo === "PRÉSTAMO INICIAL" ? "bg-blue-100 text-blue-800" : "bg-amber-100 text-amber-800");
+
+        tbodyMov.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 text-[11px] text-slate-500">${m.fecha}</td>
+            <td class="p-3 font-medium text-slate-800">${m.clienteNombre}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">${m.tipo}</span></td>
+            <td class="p-3 font-bold text-slate-800">$${m.monto.toFixed(2)}</td>
+            <td class="p-3 text-slate-500 text-[11px]">${m.notas}</td>
+            <td class="p-3 text-rose-700 text-[11px] font-medium">${m.registradoPor || 'Sistema'}</td>
+            <td class="p-3 text-center">
+              <button onclick='reimprimirMovimiento("${m.clienteId}", "${m.id}")' class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] rounded border">
+                <i class="fa-solid fa-receipt"></i> Ticket
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function reimprimirMovimiento(cid, mid) {
+      const cli = appState.clientes.find(c => c.id === cid);
+      if (!cli) return;
+      const mov = cli.movimientos.find(m => m.id === mid);
+      if (!mov) return;
+      mostrarTicket(cli, mov);
+    }
+
+    // Backup & Exportación
+    function exportDataJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `prestamos_rosa_respaldo_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importDataJSON(event) {
+      const fileReader = new FileReader();
+      fileReader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported.clientes) {
+            appState = imported;
+            guardarDatos();
+            renderizarUsuarios();
+            alert("¡Datos restaurados correctamente!");
+          }
+        } catch (err) {
+          alert("Error al leer el archivo JSON.");
+        }
+      };
+      fileReader.readAsText(event.target.files[0]);
+    }
+
+    function exportarExcel() {
+      const wb = XLSX.utils.book_new();
+
+      const carteraData = appState.clientes.map(c => {
+        const est = obtenerEstatusMorosidad(c);
+        return {
+          "ID Cliente": c.id,
+          "Nombre": c.nombre,
+          "Teléfono": c.telefono,
+          "Estatus de Pago": est.texto,
+          "Semanas sin pagar": est.semanas,
+          "Total Prestado Acumulado ($)": c.totalPrestado,
+          "Total Abonado ($)": c.totalAbonado,
+          "Saldo Pendiente Actual ($)": c.saldoPendiente,
+          "Fecha Registro": c.fechaRegistro,
+          "Creado Por": c.creadoPor
+        };
+      });
+      const ws1 = XLSX.utils.json_to_sheet(carteraData);
+      XLSX.utils.book_append_sheet(wb, ws1, "Cartera de Clientes");
+
+      let movsData = [];
+      appState.clientes.forEach(c => {
+        c.movimientos.forEach(m => {
+          movsData.push({
+            "Folio Movimiento": m.id,
+            "ID Cliente": c.id,
+            "Cliente": c.nombre,
+            "Fecha": m.fecha,
+            "Tipo": m.tipo,
+            "Monto ($)": m.monto,
+            "Notas": m.notas,
+            "Registrado Por": m.registradoPor
+          });
+        });
+      });
+      const ws2 = XLSX.utils.json_to_sheet(movsData);
+      XLSX.utils.book_append_sheet(wb, ws2, "Movimientos Globales");
+
+      XLSX.writeFile(wb, `Reporte_Prestamos_Rosa_${new Date().toISOString().split('T')[0]}.xlsx`);
+    }
+  </script>
+</body>
+</html>
