@@ -158,9 +158,12 @@
           <span class="text-[11px] text-slate-400 uppercase font-bold block">Saldo Pendiente</span>
           <span id="fcSaldo" class="text-lg font-black text-amber-600"></span>
         </div>
-        <div class="flex justify-end">
+        <div class="flex justify-end gap-2">
+          <button onclick="abrirModalEditarCliente()" class="bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 transition border border-amber-300">
+            <i class="fa-solid fa-pen-to-square"></i> Editar
+          </button>
           <button onclick="eliminarClienteSeleccionado()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 transition border border-rose-300">
-            <i class="fa-solid fa-trash-can"></i> Eliminar Cliente
+            <i class="fa-solid fa-trash-can"></i> Eliminar
           </button>
         </div>
       </div>
@@ -284,7 +287,36 @@
 
   </main>
 
-  <!-- MODAL NUEVO CLIENTE -->
+    <!-- MODAL EDITAR CLIENTE -->
+  <div id="modalEditarCliente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-amber-600"></i> Editar Datos del Cliente
+        </h3>
+        <button onclick="cerrarModalEditarCliente()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="guardarEdicionCliente(event)" class="space-y-3">
+        <input type="hidden" id="editClienteId">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Nombre Completo del Cliente *</label>
+          <input type="text" id="editNombreCliente" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Teléfono / WhatsApp *</label>
+          <input type="tel" id="editTelefonoCliente" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="cerrarModalEditarCliente()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<!-- MODAL NUEVO CLIENTE -->
   <div id="modalNuevoCliente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -539,6 +571,45 @@
       document.getElementById("modalMontoInicial").value = "";
     }
 
+    
+    // FUNCIONES DE EDICIÓN DE CLIENTE
+    function abrirModalEditarCliente() {
+      if (!clienteSeleccionadoId) return;
+      abrirModalEditarClientePorId(clienteSeleccionadoId);
+    }
+
+    function abrirModalEditarClientePorId(id) {
+      const cli = appState.clientes.find(c => c.id === id);
+      if (!cli) return;
+
+      document.getElementById("editClienteId").value = cli.id;
+      document.getElementById("editNombreCliente").value = cli.nombre;
+      document.getElementById("editTelefonoCliente").value = cli.telefono;
+
+      document.getElementById("modalEditarCliente").classList.remove("hidden");
+    }
+
+    function cerrarModalEditarCliente() {
+      document.getElementById("modalEditarCliente").classList.add("hidden");
+    }
+
+    function guardarEdicionCliente(e) {
+      e.preventDefault();
+      const id = document.getElementById("editClienteId").value;
+      const nuevoNombre = document.getElementById("editNombreCliente").value.trim();
+      const nuevoTel = document.getElementById("editTelefonoCliente").value.trim();
+
+      const cli = appState.clientes.find(c => c.id === id);
+      if (cli) {
+        cli.nombre = nuevoNombre;
+        cli.telefono = nuevoTel;
+
+        guardarDatos();
+        cerrarModalEditarCliente();
+        actualizarFichaCliente();
+      }
+    }
+
     function eliminarClienteSeleccionado() {
       if (!clienteSeleccionadoId) return;
       const cli = appState.clientes.find(c => c.id === clienteSeleccionadoId);
@@ -791,6 +862,9 @@ _¡Gracias por su preferencia!_`;
               <button onclick="seleccionarClienteDirecto('${c.id}')" title="Seleccionar cliente" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold rounded-lg text-[11px]">
                 <i class="fa-solid fa-hand-pointer"></i> Seleccionar
               </button>
+              <button onclick="abrirModalEditarClientePorId('${c.id}')" title="Editar cliente" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold rounded-lg text-[11px]">
+                <i class="fa-solid fa-pen"></i>
+              </button>
               <button onclick="eliminarClientePorId('${c.id}')" title="Eliminar cliente" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 font-semibold rounded-lg text-[11px]">
                 <i class="fa-solid fa-trash"></i>
               </button>
@@ -921,5 +995,6 @@ _¡Gracias por su preferencia!_`;
   </script>
 </body>
 </html>
+
 
 
