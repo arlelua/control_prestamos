@@ -374,8 +374,6 @@
           <div class="flex justify-between font-bold"><span id="ticketLabelMonto">MONTO:</span><span id="ticketMonto"></span></div>
           <div class="flex justify-between text-[11px] text-slate-600"><span>Notas:</span><span id="ticketNotas"></span></div>
           <hr class="my-1 border-dashed">
-          <div class="flex justify-between"><span>Total Prestado:</span><span id="ticketMontoTotal"></span></div>
-          <div class="flex justify-between"><span>Total Abonado:</span><span id="ticketTotalPagado"></span></div>
           <div class="flex justify-between text-amber-700 font-bold"><span>SALDO PENDIENTE:</span><span id="ticketSaldoRestante"></span></div>
         </div>
         <div class="text-center text-[10px] text-slate-500 border-t pt-2">
@@ -772,7 +770,7 @@
         totalPrestado: cliente.totalPrestado,
         totalAbonado: cliente.totalAbonado,
         saldoPendiente: cliente.saldoPendiente,
-        atendidoPor: mov.registradoPor
+        atendidoPor: mov.registradoPor || appState.usuarioActivo
       };
 
       document.getElementById("ticketFolio").textContent = comprobanteActual.folio;
@@ -786,8 +784,6 @@
       document.getElementById("ticketMonto").textContent = `$${comprobanteActual.monto.toFixed(2)} MXN`;
       document.getElementById("ticketNotas").textContent = comprobanteActual.notas;
 
-      document.getElementById("ticketMontoTotal").textContent = `$${comprobanteActual.totalPrestado.toFixed(2)} MXN`;
-      document.getElementById("ticketTotalPagado").textContent = `$${comprobanteActual.totalAbonado.toFixed(2)} MXN`;
       document.getElementById("ticketSaldoRestante").textContent = `$${comprobanteActual.saldoPendiente.toFixed(2)} MXN`;
 
       document.getElementById("modalComprobante").classList.remove("hidden");
@@ -906,14 +902,41 @@ _¡Gracias por su preferencia!_`;
             <td class="p-3 font-bold text-slate-800">$${m.monto.toFixed(2)}</td>
             <td class="p-3 text-slate-500 text-[11px]">${m.notas}</td>
             <td class="p-3 text-rose-700 text-[11px] font-medium">${m.registradoPor || 'Sistema'}</td>
-            <td class="p-3 text-center">
-              <button onclick='reimprimirMovimiento("${m.clienteId}", "${m.id}")' class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] rounded border">
+            <td class="p-3 text-center flex justify-center gap-1">
+              <button onclick='reimprimirMovimiento("${m.clienteId}", "${m.id}")' title="Ver Ticket" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg border">
                 <i class="fa-solid fa-receipt"></i> Ticket
+              </button>
+              <button onclick='reenviarWhatsAppDirecto("${m.clienteId}", "${m.id}")' title="Reenviar por WhatsApp" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-semibold rounded-lg border border-emerald-300">
+                <i class="fa-brands fa-whatsapp"></i> Reenviar
               </button>
             </td>
           </tr>
         `;
       });
+    }
+
+    
+    function reenviarWhatsAppDirecto(cid, mid) {
+      const cli = appState.clientes.find(c => c.id === cid);
+      if (!cli) return;
+      const mov = cli.movimientos.find(m => m.id === mid);
+      if (!mov) return;
+      
+      comprobanteActual = {
+        folio: mov.id,
+        tipo: mov.tipo,
+        cliente: cli.nombre,
+        telefono: cli.telefono,
+        fecha: mov.fecha,
+        monto: mov.monto,
+        notas: mov.notas,
+        totalPrestado: cli.totalPrestado,
+        totalAbonado: cli.totalAbonado,
+        saldoPendiente: cli.saldoPendiente,
+        atendidoPor: mov.registradoPor || appState.usuarioActivo
+      };
+      
+      enviarWhatsApp();
     }
 
     function reimprimirMovimiento(cid, mid) {
@@ -996,5 +1019,6 @@ _¡Gracias por su preferencia!_`;
   </script>
 </body>
 </html>
+
 
 
